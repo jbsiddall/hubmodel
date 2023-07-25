@@ -4,7 +4,9 @@
   "description": "",
   "main": "build/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "podman:run": "podman run -it -v \"$(pwd)\":/app --workdir=/app hubspot-orm-dev /bin/bash",
+    "podman:build": "podman build . -f Dockerfile -t hubspot-orm-dev"
   },
   "keywords": [],
   "author": "",
