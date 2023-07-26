@@ -6,7 +6,6 @@ import type {
 } from '@hubspot/api-client/lib/codegen/crm/properties';
 import {join} from 'path';
 import {writeFile} from 'fs/promises';
-import dedent from 'dedent';
 import {Client as HubspotClient} from '@hubspot/api-client';
 import {z} from 'zod';
 import {Pipeline} from '@hubspot/api-client/lib/codegen/crm/pipelines';
@@ -33,7 +32,7 @@ const main = async () => {
   ]
 
 
-  const allTsTypes = await Promise.all(
+  await Promise.all(
     hubspotObjectTypesToDownload.map(async (objectType) => {
       const pipelines = await (async () => {
         if (!downloadPipelinesForTypes.includes(objectType)) {
@@ -72,7 +71,7 @@ const main = async () => {
     type: 'variable-declaration',
     name: '__META__',
     expression: expression().object({
-      collecitonProperties: expression().object(R.fromPairs(hubspotObjectTypesToDownload.map(name => [name, expression().var(name).finishExpr()] as const))),
+      collectionProperties: expression().object(R.fromPairs(hubspotObjectTypesToDownload.map(name => [name, expression().var(name).finishExpr()] as const))),
     }),
     export: true,
   })
@@ -99,10 +98,13 @@ const EnumerationValidator = z.object({
 });
 
 
-const zodStringExpr = expression().var('z').dot('string').call().finishExpr()
-const zodDateExpr = expression().var('z').dot('string').call().dot('transform').call(
+const zodStringExpr = expression().var('z').dot('string').call().dot('nullable').call().finishExpr()
+const zodDateExpr = expression().var('z').dot('string').call().dot('nullable').call().dot('transform').call(
     expression().arrow(['x'], () => [
-      {type: 'return', value: expression().new().var('Date').finishExpr().call(expression().var('x').finishExpr()).finishExpr()}
+      {type: 'if', guard: expression().var('x').finishExpr(), body: [
+        {type: 'return', value: expression().new().var('Date').finishExpr().call(expression().var('x').finishExpr()).finishExpr()}
+      ]},
+      {type: 'return', value: expression().null()}
     ])
   ).finishExpr()
 

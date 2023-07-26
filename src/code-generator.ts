@@ -2,9 +2,15 @@ import dedent from 'dedent'
 import R from 'ramda'
 import {format} from 'prettier'
 
-export type FunctionBodyStatements = VariableDeclaration | ReturnStatement
+export type FunctionBodyStatements = VariableDeclaration | ReturnStatement | IfStatement
 
 export type Statement = FunctionBodyStatements | ImportStatement
+
+interface IfStatement {
+    type: 'if'
+    guard: Expression,
+    body: Statement[]
+}
 
 interface ReturnStatement {
     type: 'return'
@@ -31,7 +37,11 @@ interface VarExpr {
     name: string
 }
 
-type LiteralExpr = StringLiteral | ObjectLiteral | ArrayLiteral;
+type LiteralExpr = NullLiteral | StringLiteral | ObjectLiteral | ArrayLiteral;
+
+interface NullLiteral {
+    type: 'null-literal'
+}
 
 interface StringLiteral {
     type: 'string-literal'
@@ -77,7 +87,7 @@ export const serialize = async (ast: Statement[]) => {
     return format(result, {filepath: 'data.ts'})
 }
 
-const serializeStatement = (s: Statement) => {
+const serializeStatement = (s: Statement): string => {
     switch (s.type) {
         case "variable-declaration": 
             return dedent`
@@ -93,6 +103,12 @@ const serializeStatement = (s: Statement) => {
             `
         case 'return':
             return `return ${serializeExpr(s.value)}`
+        case 'if':
+            return `
+                if (${serializeExpr(s.guard)}) {
+                    ${s.body.map(serializeStatement).join(';\n')}
+                }
+            `;
         default:
             return assertUnreachable(s)
     }
@@ -102,6 +118,7 @@ const serializeStatement = (s: Statement) => {
 const serializeExpr = <E extends Expression>(expr: E): string => {
     switch (expr.type) {
         case 'var': return expr.name
+        case 'null-literal': return 'null'
         case 'string-literal': return `"${expr.value}"`
         case 'object-literal':
             return (() => {
@@ -163,6 +180,9 @@ const expressionBuilder = <T>(restore: (expr: Expression) => T) => {
         string(value: string) {
             return restore({type: 'string-literal', value: value})
         },
+        null() {
+            return restore({type: 'null-literal'})
+        }
     }
 }
 

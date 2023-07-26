@@ -1,19 +1,15 @@
 import {Client} from "@hubspot/api-client"
-import {enrichHubspotClient} from "./src/client"
+import {createHubspotClient} from "./src/client"
 import {config} from 'dotenv'
 config()
 
 const client = new Client({accessToken: process.env.HUBSPOT_TOKEN})
-const betterClient = enrichHubspotClient(client)
+const betterClient = createHubspotClient(client)
 
 const main = async () => {
-    const results = await betterClient.crm.contacts.getAll(undefined, undefined, ['email'])
-    console.log(results)
-    const bla = results[0].properties
+    const results = await betterClient.contacts.findMany({select: {address: true, hs_createdate: true}})
+    console.log('results', results[0].properties)
 }
-
-type AX = ["1", "2", "3"]
-type B = AX[number]
 
 /*
     properties: {
