@@ -3,3 +3,4 @@ build/
 src/generated.ts
 .env
 pnpm-store/
+.pnp.cjs

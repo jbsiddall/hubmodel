@@ -22,6 +22,7 @@
     "webpack-cli": "^5.1.4"
   },
   "dependencies": {
+    "cmd-ts": "^0.13.0",
     "dedent": "^1.2.0",
     "dotenv": "^16.3.1",
     "prettier": "^3.0.0",

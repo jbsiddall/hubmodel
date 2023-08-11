@@ -3,9 +3,7 @@ import {
     CollHelperInternalArgs,
     CollectionInstance,
     META,
-    ZOD_COLLECTIONS,
     SelectArg,
-    DefaultSelectArg,
 } from './common'
 import z from 'zod'
 import { __META__ } from '../generated'
@@ -47,7 +45,8 @@ const findMany = async <
         limit: take as any as number,
     })
     const RawValidator: META['collectionProperties'][Name] = __META__.collectionProperties[collectionName]
-    const collectionValidator = select === undefined ? RawValidator : RawValidator.pick(select as any)
+    // TODO remove any from following line
+    const collectionValidator: typeof RawValidator = select === undefined ? RawValidator : (RawValidator.pick as any)(select)
 
     const rows = response.results.map(row => SimpleObjectValidator.parse(row)).map(row => ({
         ...row,
