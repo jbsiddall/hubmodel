@@ -1,8 +1,6 @@
-import {Client} from "@hubspot/api-client"
-export {Client} from "@hubspot/api-client"
 import {__META__} from "../generated"
-import {ZodType, z} from "zod"
-import R from 'ramda'
+import {z} from "zod"
+import {AxiosInstance} from 'axios'
 
 export type META = typeof __META__
 export type COLLECTION_NAMES = keyof META['collectionProperties']
@@ -34,7 +32,8 @@ export interface CollectionInstance<Name extends COLLECTION_NAMES, Properties ex
 //     findMany: FindMany<Name>
 // }
 
+
 export interface CollHelperInternalArgs<Name extends COLLECTION_NAMES> {
     collectionName: Name
-    client: Client
+    client: AxiosInstance
 }

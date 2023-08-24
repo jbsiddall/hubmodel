@@ -1,6 +1,5 @@
+wwwroot/*.js
 node_modules
-build/
-src/generated.ts
+typings
+dist
 .env
-pnpm-store/
-.pnp.cjs

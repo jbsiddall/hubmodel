@@ -5,7 +5,9 @@ import {
     META,
     SelectArg,
 } from './common'
-import z from 'zod'
+import { z } from 'zod'
+import {searchObjects} from '../rest'
+import {AxiosInstance} from 'axios'
 import { __META__ } from '../generated'
 
 interface FindManyArgs<Name extends COLLECTION_NAMES, S extends SelectArg<Name>> {
@@ -17,18 +19,18 @@ interface FindManyArgs<Name extends COLLECTION_NAMES, S extends SelectArg<Name>>
 const SimpleObjectValidator = z.object({
     id: z.string(),
     properties: z.record(z.unknown()),
-    createdAt: z.date(),
-    updatedAt: z.date(),
+    createdAt: z.string().transform(Date),
+    updatedAt: z.string().transform(Date),
     archived: z.boolean(),
 })
 
 const findMany = async <
-        Name extends COLLECTION_NAMES,
-        Props extends SelectArg<Name>,
-        >(
-        {collectionName, client}: CollHelperInternalArgs<Name>,
-        {select, take, skip}: FindManyArgs<Name, Props>
-        ): Promise<CollectionInstance<Name, Props>[]> => {
+    Name extends COLLECTION_NAMES,
+    Props extends SelectArg<Name>,
+>(
+    { collectionName, client }: CollHelperInternalArgs<Name>,
+    { select, take, skip }: FindManyArgs<Name, Props>
+): Promise<CollectionInstance<Name, Props>[]> => {
 
     if (take !== undefined && take < 0) {
         throw new Error(`take must be positive`)
@@ -37,18 +39,22 @@ const findMany = async <
         throw new Error(`skip must be positive`)
     }
 
-    const response = await client.crm.objects.searchApi.doSearch(collectionName, {
+    const results = await searchObjects({
+        axios: client,
+        objectType: collectionName,
         properties: Object.keys(select ?? {}),
         filterGroups: [],
         after: skip as any as number,
         sorts: [],
         limit: take as any as number,
     })
+
     const RawValidator: META['collectionProperties'][Name] = __META__.collectionProperties[collectionName]
     // TODO remove any from following line
     const collectionValidator: typeof RawValidator = select === undefined ? RawValidator : (RawValidator.pick as any)(select)
 
-    const rows = response.results.map(row => SimpleObjectValidator.parse(row)).map(row => ({
+
+    const rows = results.map(row => SimpleObjectValidator.parse(row)).map(row => ({
         ...row,
         properties: collectionValidator.parse(row.properties)
     }))
