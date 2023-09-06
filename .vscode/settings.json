@@ -3,5 +3,8 @@
     "typescript.experimental.tsserver.web.enableProjectWideIntellisense": true,
     "typescript.tsserver.enableTracing": true,
     "typescript.tsserver.log": "verbose",
-    "typescript.tsdk": "node_modules/typescript/lib"
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "deno.enable": true,
+    "deno.lint": true,
+    "deno.unstable": true
 }

@@ -3,3 +3,6 @@ node_modules
 typings
 dist
 .env
+src/generated.ts
+dev.ts
+npm/

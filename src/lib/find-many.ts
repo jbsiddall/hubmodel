@@ -4,11 +4,10 @@ import {
     CollectionInstance,
     META,
     SelectArg,
-} from './common'
-import { z } from 'zod'
-import {searchObjects} from '../rest'
-import {AxiosInstance} from 'axios'
-import { __META__ } from '../generated'
+} from './common.ts'
+import { z } from './deps.ts'
+import {searchObjects} from '../rest.ts'
+import { __META__ } from '../generated.ts'
 
 interface FindManyArgs<Name extends COLLECTION_NAMES, S extends SelectArg<Name>> {
     select?: S,

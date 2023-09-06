@@ -1,6 +1,5 @@
-import {__META__} from "../generated"
-import {z} from "zod"
-import {AxiosInstance} from 'axios'
+import {__META__} from "../generated.ts"
+import {z,AxiosInstance} from "./deps.ts"
 
 export type META = typeof __META__
 export type COLLECTION_NAMES = keyof META['collectionProperties']

@@ -1,6 +1,6 @@
-import dedent from 'dedent'
-import R from 'ramda'
-import {format} from 'prettier'
+import dedent from "npm:dedent";
+import  {R} from "./deps.ts"
+import {format} from 'npm:prettier'
 
 export type FunctionBodyStatements = VariableDeclaration | ReturnStatement | IfStatement
 
@@ -30,18 +30,25 @@ interface VariableDeclaration {
     export?: boolean,
 }
 
-export type Expression = VarExpr | LiteralExpr | CallExpr | AttrAccessExpr | ArrowExpr | NewExpr
+export type Expression = VarExpr | LiteralExpr | CallExpr | AttrAccessExpr | ArrowExpr | NewExpr | JsonExpr
 
 interface VarExpr {
     type: 'var'
     name: string
 }
 
-type LiteralExpr = NullLiteral | StringLiteral | ObjectLiteral | ArrayLiteral;
+interface JsonExpr {
+    type: 'json'
+    value: object
+    const: boolean
+}
+
+type LiteralExpr = NullLiteral | StringLiteral | ObjectLiteral | ArrayLiteral
 
 interface NullLiteral {
     type: 'null-literal'
 }
+
 
 interface StringLiteral {
     type: 'string-literal'
@@ -89,11 +96,12 @@ export const serialize = async (ast: Statement[]) => {
 
 const serializeStatement = (s: Statement): string => {
     switch (s.type) {
-        case "variable-declaration": 
+        case "variable-declaration": {
             return dedent`
                 ${s.export ? 'export' : ''} const ${s.name} = ${serializeExpr(s.expression)}
             `
-        case 'import':
+        }
+        case 'import': {
             const namesMap = Array.isArray(s.importNames)
                 ? s.importNames.join(', ')
                 : Object.entries(s.importNames).map( ([K, V]) => `${K} as ${V}`).join(', ')
@@ -101,16 +109,20 @@ const serializeStatement = (s: Statement): string => {
             return dedent`
                 import {${namesMap}} from "${s.module}"
             `
-        case 'return':
+        }
+        case 'return': {
             return `return ${serializeExpr(s.value)}`
-        case 'if':
+        }
+        case 'if': {
             return `
                 if (${serializeExpr(s.guard)}) {
                     ${s.body.map(serializeStatement).join(';\n')}
                 }
             `;
-        default:
+        }
+        default: {
             return assertUnreachable(s)
+        }
     }
 }
 
@@ -120,19 +132,17 @@ const serializeExpr = <E extends Expression>(expr: E): string => {
         case 'var': return expr.name
         case 'null-literal': return 'null'
         case 'string-literal': return `"${expr.value}"`
-        case 'object-literal':
-            return (() => {
-                const flattened = R.map(v => serializeExpr(v), expr.value)
-                const inner = R.toPairs(flattened).map(([K, V]) => `${K}: ${V}`).join(', ')
-                return `{ ${inner} }`
-            })();
-        case 'array-literal':
-            return (() => {
-                const flattened = R.map(v => serializeExpr(v), expr.value)
-                const inner = flattened.join(', ')
-                return `[ ${inner} ]`
-            })();
-        case "attribute-access": 
+        case 'object-literal': {
+            const flattened = R.map(v => serializeExpr(v), expr.value)
+            const inner = R.toPairs(flattened).map(([K, V]) => `${K}: ${V}`).join(', ')
+            return `{ ${inner} }`
+        }
+        case 'array-literal': {
+            const flattened = R.map(v => serializeExpr(v), expr.value)
+            const inner = flattened.join(', ')
+            return `[ ${inner} ]`
+        }
+        case "attribute-access": {
             const objString = serializeExpr(expr.objExpression)
 
             if (expr.attributeName.type === 'string-literal' && expr.attributeName.value.match(/^[a-zA-Z0-9]+$/)) {
@@ -140,15 +150,20 @@ const serializeExpr = <E extends Expression>(expr: E): string => {
             }
             const attrNameString = serializeExpr(expr.attributeName)
             return `${objString}[${attrNameString}]`
-        case 'call': 
+        }
+        case 'call': {
             const args = expr.arguments.map(serializeExpr).join(', ')
             return `${serializeExpr(expr.funcExpression)}(${args})`
-        case 'arrow':
+        }
+        case 'arrow': {
             const paramsString = expr.parameters.map(p => p.name).join(', ')
             const bodyString = expr.body.map(serializeStatement).join('; ')
             return `(${paramsString}) => { ${bodyString} }`
-        case 'new':
+        }
+        case 'new': 
             return `new ${serializeExpr(expr.obj)}`
+        case 'json':
+            return JSON.stringify(expr.value) + (expr.const ? 'as const' : '')
         default: return assertUnreachable(expr)
     }
 }
@@ -182,6 +197,9 @@ const expressionBuilder = <T>(restore: (expr: Expression) => T) => {
         },
         null() {
             return restore({type: 'null-literal'})
+        },
+        json(obj: object) {
+            return restore({type: 'json', const: true, value: JSON.parse(JSON.stringify(obj))})
         }
     }
 }
