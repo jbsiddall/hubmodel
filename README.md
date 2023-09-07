@@ -1,4 +1,4 @@
-# hubspot-orm
+# HubModel
 
 Goals of this library:
 
