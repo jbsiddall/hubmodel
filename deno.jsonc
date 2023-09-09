@@ -1,7 +1,8 @@
 {
-    "tasks": {
-        "buildReadme": "deno run --allow-all ./scripts/build_readme.ts ./src/docs/README.md ./docs/README.md",
-        "check": "deno check ./src/cli/main.ts ./src/lib/index.ts $(find ./src/docs/example -type f)",
-        "commit": "deno task check && deno task buildReadme && git commit && git commit --amend -m \"$(git log -1 --pretty=%B)\n\n--auto-generated--\""
-    }
+  "tasks": {
+    "buildReadme": "deno run --allow-all ./scripts/build_readme.ts ./src/docs/README.md ./docs/README.md",
+    "check": "deno check ./src/cli/main.ts ./src/lib/index.ts $(find ./src/docs/example -type f)",
+    "format": "deno fmt src docs",
+    "commit": "deno task check && deno task format && deno task buildReadme && git commit && git commit --amend -m \"$(git log -1 --pretty=%B)\n\n--auto-generated--\""
+  }
 }

@@ -1,4 +1,4 @@
-import {R, z, axios, AxiosInstance} from "../deps.ts"
+import { axios, AxiosInstance, R, z } from "../deps.ts";
 
-export {R, z, axios}
-export type {AxiosInstance}
+export { axios, R, z };
+export type { AxiosInstance };
