@@ -1,4 +1,3 @@
-import {z, R} from "../deps.ts"
+import { R, z } from "../deps.ts";
 
-
-export {R, z} 
+export { R, z };

@@ -30,11 +30,5 @@ ticket/discussion etc and we can discuss :)
 
 ## Examples
 
-```typescript
-const results = await client.contacts.findMany({
-  select: { address: true, hs_createdate: true, email: true },
-});
-
-console.log("results", results);
-
+```typescript:./example/find-many.ts
 ```
