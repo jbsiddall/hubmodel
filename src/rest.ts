@@ -29,8 +29,7 @@ interface SearchObjectsArgs {
 }
 
 export const searchObjects = async (
-  { axios, objectType, properties, filterGroups, after, sorts, limit }:
-    SearchObjectsArgs,
+  { axios, objectType, properties, filterGroups, after, sorts, limit }: SearchObjectsArgs,
 ) => {
   const response = await axios.post(
     `/crm/v3/objects/${objectType}/search`,

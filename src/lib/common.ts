@@ -7,6 +7,17 @@ export type ZOD_COLLECTIONS = {
   [K in COLLECTION_NAMES]: z.infer<META["collectionProperties"][K]>;
 };
 
+/**
+ * ensures that a sub type doesn't have any extra keys not in the superclass
+ * Scenario where this is needed:
+ * when creating the `SelectArg` type we need an object with all properties in a collection mapping to true.
+ * however because we have a type that extends this, then the type can have extra keys and still technically extend it so there's
+ * no errors. we want errors when extra keys are added that there's not a property for.
+ */
+export type NoExtraKeys<Super extends object, Sub extends object> = {
+  [K in keyof Sub as K extends keyof Super ? K : never]: Sub[K];
+};
+
 export type SelectArg<Name extends COLLECTION_NAMES> = {
   [K in keyof ZOD_COLLECTIONS[Name]]?: true;
 };

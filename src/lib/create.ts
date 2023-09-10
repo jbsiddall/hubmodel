@@ -1,8 +1,4 @@
-import {
-  COLLECTION_NAMES,
-  CollHelperInternalArgs,
-  ZOD_COLLECTIONS,
-} from "./common.ts";
+import { COLLECTION_NAMES, CollHelperInternalArgs, ZOD_COLLECTIONS } from "./common.ts";
 import { __META__ } from "../generated.ts";
 
 export const collectionHelpers = <Name extends COLLECTION_NAMES>(
