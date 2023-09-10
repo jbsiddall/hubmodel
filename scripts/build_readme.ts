@@ -13,12 +13,12 @@ const replacer = (
 ) => {
   const dir = dirname(inputReadmePath);
   const normalisedFilePath = join(dir, fileName);
-  const contentLines = Deno.readTextFileSync(normalisedFilePath).split('\n');
-  const index = contentLines.indexOf('// doc-example')
+  const contentLines = Deno.readTextFileSync(normalisedFilePath).split("\n");
+  const index = contentLines.indexOf("// doc-example");
   if (index == -1) {
-    throw new Error(`missing '// doc-example' line in file ${normalisedFilePath}`)
+    throw new Error(`missing '// doc-example' line in file ${normalisedFilePath}`);
   }
-  const linesForExample = contentLines.slice(index+1).join('\n')
+  const linesForExample = contentLines.slice(index + 1).join("\n");
   return "\n" + linesForExample.replaceAll("```", "\`\`\`");
 };
 

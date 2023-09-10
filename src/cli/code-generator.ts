@@ -106,9 +106,7 @@ const serializeStatement = (s: Statement): string => {
   switch (s.type) {
     case "variable-declaration": {
       return dedent`
-                ${s.export ? "export" : ""} const ${s.name} = ${
-        serializeExpr(s.expression)
-      }
+                ${s.export ? "export" : ""} const ${s.name} = ${serializeExpr(s.expression)}
             `;
     }
     case "import": {

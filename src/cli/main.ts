@@ -1,16 +1,7 @@
 import { fromFileUrl, join } from "https://deno.land/std@0.201.0/path/mod.ts";
 import { R, z } from "./deps.ts";
-import {
-  Expression,
-  expression,
-  serialize,
-  Statement,
-} from "./code-generator.ts";
-import {
-  createHubspotAxios,
-  getObjectTypeProperties,
-  PropertyDefinitionValidator,
-} from "../rest.ts";
+import { Expression, expression, serialize, Statement } from "./code-generator.ts";
+import { createHubspotAxios, getObjectTypeProperties, PropertyDefinitionValidator } from "../rest.ts";
 import { getConfig } from "../env.ts";
 
 const fileToWriteTo = join(
@@ -78,9 +69,7 @@ const main = async () => {
     expression: expression().object({
       collectionProperties: expression().object(
         R.fromPairs(
-          hubspotObjectTypesToDownload.map((name) =>
-            [name, expression().var(name).finishExpr()] as const
-          ),
+          hubspotObjectTypesToDownload.map((name) => [name, expression().var(name).finishExpr()] as const),
         ),
       ),
       definition: expression().object(

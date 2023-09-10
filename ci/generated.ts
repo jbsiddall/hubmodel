@@ -471,8 +471,7 @@ const ticketsDefinition = [
     createdAt: "2020-06-30T15:57:38.594Z",
     label: "First agent email response date",
     fieldType: "date",
-    description:
-      "The date of the first email response from an agent after a ticket was created",
+    description: "The date of the first email response from an agent after a ticket was created",
     groupName: "ticket_activity",
     options: [],
     displayOrder: -1,
@@ -715,8 +714,7 @@ const ticketsDefinition = [
     createdAt: "2021-10-04T17:06:37.334Z",
     label: "Auto-generated from thread id",
     fieldType: "number",
-    description:
-      "Thread that this ticket was automatically created for using ticket rules",
+    description: "Thread that this ticket was automatically created for using ticket rules",
     groupName: "ticketinformation",
     options: [],
     displayOrder: -1,
@@ -739,8 +737,7 @@ const ticketsDefinition = [
     createdAt: "2020-10-26T21:47:43.363Z",
     label: "Originating Conversations Message Id",
     fieldType: "text",
-    description:
-      "Conversations Message Id of the message that originated this ticket",
+    description: "Conversations Message Id of the message that originated this ticket",
     groupName: "ticketinformation",
     options: [],
     displayOrder: -1,
@@ -810,8 +807,7 @@ const ticketsDefinition = [
     createdAt: "2019-08-06T02:43:00.438Z",
     label: "HubSpot create date",
     fieldType: "date",
-    description:
-      "Internal read-only property representing the date the ticket was created in HubSpot",
+    description: "Internal read-only property representing the date the ticket was created in HubSpot",
     groupName: "ticketinformation",
     options: [],
     displayOrder: -1,
@@ -857,8 +853,7 @@ const ticketsDefinition = [
     createdAt: "2020-02-11T18:44:49.289Z",
     label: "Date entered 'New (Support Pipeline)'",
     fieldType: "calculation_read_time",
-    description:
-      "The date and time when the ticket entered the 'New' stage, 'Support Pipeline' pipeline",
+    description: "The date and time when the ticket entered the 'New' stage, 'Support Pipeline' pipeline",
     groupName: "ticketinformation",
     options: [],
     displayOrder: -1,
@@ -905,8 +900,7 @@ const ticketsDefinition = [
     createdAt: "2020-02-11T18:45:23.414Z",
     label: "Date entered 'Waiting on us (Support Pipeline)'",
     fieldType: "calculation_read_time",
-    description:
-      "The date and time when the ticket entered the 'Waiting on us' stage, 'Support Pipeline' pipeline",
+    description: "The date and time when the ticket entered the 'Waiting on us' stage, 'Support Pipeline' pipeline",
     groupName: "ticketinformation",
     options: [],
     displayOrder: -1,
@@ -929,8 +923,7 @@ const ticketsDefinition = [
     createdAt: "2020-02-11T18:45:39.758Z",
     label: "Date entered 'Closed (Support Pipeline)'",
     fieldType: "calculation_read_time",
-    description:
-      "The date and time when the ticket entered the 'Closed' stage, 'Support Pipeline' pipeline",
+    description: "The date and time when the ticket entered the 'Closed' stage, 'Support Pipeline' pipeline",
     groupName: "ticketinformation",
     options: [],
     displayOrder: -1,
@@ -953,8 +946,7 @@ const ticketsDefinition = [
     createdAt: "2020-02-11T18:44:54.703Z",
     label: "Date exited 'New (Support Pipeline)'",
     fieldType: "calculation_read_time",
-    description:
-      "The date and time when the ticket exited the 'New' stage, 'Support Pipeline' pipeline",
+    description: "The date and time when the ticket exited the 'New' stage, 'Support Pipeline' pipeline",
     groupName: "ticketinformation",
     options: [],
     displayOrder: -1,
@@ -977,8 +969,7 @@ const ticketsDefinition = [
     createdAt: "2020-02-11T18:45:11.948Z",
     label: "Date exited 'Waiting on contact (Support Pipeline)'",
     fieldType: "calculation_read_time",
-    description:
-      "The date and time when the ticket exited the 'Waiting on contact' stage, 'Support Pipeline' pipeline",
+    description: "The date and time when the ticket exited the 'Waiting on contact' stage, 'Support Pipeline' pipeline",
     groupName: "ticketinformation",
     options: [],
     displayOrder: -1,
@@ -1001,8 +992,7 @@ const ticketsDefinition = [
     createdAt: "2020-02-11T18:45:28.457Z",
     label: "Date exited 'Waiting on us (Support Pipeline)'",
     fieldType: "calculation_read_time",
-    description:
-      "The date and time when the ticket exited the 'Waiting on us' stage, 'Support Pipeline' pipeline",
+    description: "The date and time when the ticket exited the 'Waiting on us' stage, 'Support Pipeline' pipeline",
     groupName: "ticketinformation",
     options: [],
     displayOrder: -1,
@@ -1025,8 +1015,7 @@ const ticketsDefinition = [
     createdAt: "2020-02-11T18:45:45.089Z",
     label: "Date exited 'Closed (Support Pipeline)'",
     fieldType: "calculation_read_time",
-    description:
-      "The date and time when the ticket exited the 'Closed' stage, 'Support Pipeline' pipeline",
+    description: "The date and time when the ticket exited the 'Closed' stage, 'Support Pipeline' pipeline",
     groupName: "ticketinformation",
     options: [],
     displayOrder: -1,
@@ -1049,8 +1038,7 @@ const ticketsDefinition = [
     createdAt: "2019-08-06T02:43:01.969Z",
     label: "External object ids",
     fieldType: "select",
-    description:
-      "Unique ids corresponding to tickets in a system outside of HubSpot",
+    description: "Unique ids corresponding to tickets in a system outside of HubSpot",
     groupName: "ticketinformation",
     options: [],
     displayOrder: -1,
@@ -1073,8 +1061,7 @@ const ticketsDefinition = [
     createdAt: "2020-06-30T15:57:38.618Z",
     label: "Last CES survey comment",
     fieldType: "text",
-    description:
-      "Last CES survey comment that this contact gave for this ticket",
+    description: "Last CES survey comment that this contact gave for this ticket",
     groupName: "ticket_activity",
     options: [],
     displayOrder: -1,
@@ -1097,8 +1084,7 @@ const ticketsDefinition = [
     createdAt: "2020-06-30T15:57:38.684Z",
     label: "Last CES survey rating",
     fieldType: "select",
-    description:
-      "Last CES survey rating that this contact gave for this ticket",
+    description: "Last CES survey rating that this contact gave for this ticket",
     groupName: "ticket_activity",
     options: [
       {
@@ -1218,8 +1204,7 @@ const ticketsDefinition = [
     createdAt: "2021-12-07T15:02:54.188Z",
     label: "First agent response date",
     fieldType: "calculation_rollup",
-    description:
-      "The date of the first response from an agent out of all associated conversations",
+    description: "The date of the first response from an agent out of all associated conversations",
     groupName: "ticketinformation",
     options: [],
     displayOrder: -1,
@@ -1327,8 +1312,7 @@ const ticketsDefinition = [
     createdAt: "2019-08-06T02:43:01.807Z",
     label: "Last email activity",
     fieldType: "select",
-    description:
-      "The type of the last email activity with the contact associated with the ticket.",
+    description: "The type of the last email activity with the contact associated with the ticket.",
     groupName: "ticketinformation",
     options: [
       {
@@ -1370,8 +1354,7 @@ const ticketsDefinition = [
     createdAt: "2019-08-06T02:43:01.851Z",
     label: "Last email date",
     fieldType: "date",
-    description:
-      "The date of the last email activity with the contact associated with the ticket.",
+    description: "The date of the last email activity with the contact associated with the ticket.",
     groupName: "ticketinformation",
     options: [],
     displayOrder: -1,
@@ -1540,8 +1523,7 @@ const ticketsDefinition = [
     createdAt: "2021-12-07T15:05:01.554Z",
     label: "Latest message seen by agent ids",
     fieldType: "calculation_rollup",
-    description:
-      "Agents who have seen the newest message across all conversations associated to the ticket",
+    description: "Agents who have seen the newest message across all conversations associated to the ticket",
     groupName: "ticketinformation",
     options: [],
     displayOrder: -1,
@@ -1632,8 +1614,7 @@ const ticketsDefinition = [
     createdAt: "2023-08-18T19:34:56.911Z",
     label: "Most Relevant SLA Type",
     fieldType: "select",
-    description:
-      "Most relevant SLA type between Close By, First Response, Next Response",
+    description: "Most relevant SLA type between Close By, First Response, Next Response",
     groupName: "ticketinformation",
     options: [
       {
@@ -1745,8 +1726,7 @@ const ticketsDefinition = [
     createdAt: "2020-06-30T15:57:38.768Z",
     label: "Number of times contacted",
     fieldType: "number",
-    description:
-      "The number of times a call, email, or meeting was logged on the ticket",
+    description: "The number of times a call, email, or meeting was logged on the ticket",
     groupName: "ticket_activity",
     options: [],
     displayOrder: -1,
@@ -1767,8 +1747,7 @@ const ticketsDefinition = [
     type: "number",
     label: "Record ID",
     fieldType: "number",
-    description:
-      "The unique ID for this record. This value is automatically set by HubSpot and may not be modified.",
+    description: "The unique ID for this record. This value is automatically set by HubSpot and may not be modified.",
     groupName: "ticketinformation",
     options: [],
     displayOrder: -1,
@@ -1810,8 +1789,7 @@ const ticketsDefinition = [
     type: "string",
     label: "Record Creation Source ID",
     fieldType: "text",
-    description:
-      "The sourceId -- further detail -- of the source that created this object record",
+    description: "The sourceId -- further detail -- of the source that created this object record",
     groupName: "ticketinformation",
     options: [],
     displayOrder: -1,
@@ -1832,8 +1810,7 @@ const ticketsDefinition = [
     type: "number",
     label: "Record Creation Source User ID",
     fieldType: "number",
-    description:
-      "User ID of the user who initiated creation of this object record",
+    description: "User ID of the user who initiated creation of this object record",
     groupName: "ticketinformation",
     options: [],
     displayOrder: -1,
@@ -2091,8 +2068,7 @@ const ticketsDefinition = [
     createdAt: "2023-03-13T13:32:07.152Z",
     label: "Users interaction",
     fieldType: "checkbox",
-    description:
-      "Stores a list of users who have viewed the most recent interaction on a ticket",
+    description: "Stores a list of users who have viewed the most recent interaction on a ticket",
     groupName: "ticket_activity",
     options: [],
     displayOrder: -1,
@@ -2139,8 +2115,7 @@ const ticketsDefinition = [
     createdAt: "2023-05-22T14:23:42.802Z",
     label: "Ticket Tags",
     fieldType: "checkbox",
-    description:
-      "List of tag ids applicable to a ticket. This property is set automatically by HubSpot.",
+    description: "List of tag ids applicable to a ticket. This property is set automatically by HubSpot.",
     groupName: "ticketinformation",
     options: [],
     displayOrder: -1,
@@ -2163,8 +2138,7 @@ const ticketsDefinition = [
     createdAt: "2021-04-27T18:24:55.228Z",
     label: "Thread IDs To Restore",
     fieldType: "checkbox",
-    description:
-      "Thread IDs (from cv-threads) used to implement custom cascading delete/restore",
+    description: "Thread IDs (from cv-threads) used to implement custom cascading delete/restore",
     groupName: "ticketinformation",
     options: [],
     displayOrder: -1,
@@ -2235,8 +2209,7 @@ const ticketsDefinition = [
     createdAt: "2020-06-30T15:57:38.641Z",
     label: "Ticket ID",
     fieldType: "calculation_equation",
-    description:
-      "The unique id for this ticket. This unique id is automatically populated by HubSpot.",
+    description: "The unique id for this ticket. This unique id is automatically populated by HubSpot.",
     groupName: "ticketinformation",
     options: [],
     displayOrder: -1,
@@ -2306,8 +2279,7 @@ const ticketsDefinition = [
     createdAt: "2020-02-11T18:45:00.484Z",
     label: "Time in 'New (Support Pipeline)'",
     fieldType: "calculation_read_time",
-    description:
-      "The total time in seconds spent by the ticket in the 'New' stage, 'Support Pipeline' pipeline",
+    description: "The total time in seconds spent by the ticket in the 'New' stage, 'Support Pipeline' pipeline",
     groupName: "ticketinformation",
     options: [],
     displayOrder: -1,
@@ -2378,8 +2350,7 @@ const ticketsDefinition = [
     createdAt: "2020-02-11T18:45:50.412Z",
     label: "Time in 'Closed (Support Pipeline)'",
     fieldType: "calculation_read_time",
-    description:
-      "The total time in seconds spent by the ticket in the 'Closed' stage, 'Support Pipeline' pipeline",
+    description: "The total time in seconds spent by the ticket in the 'Closed' stage, 'Support Pipeline' pipeline",
     groupName: "ticketinformation",
     options: [],
     displayOrder: -1,
@@ -2986,8 +2957,7 @@ const ticketsDefinition = [
     createdAt: "2020-06-30T15:57:38.606Z",
     label: "Time to first agent email reply",
     fieldType: "number",
-    description:
-      "The time from the ticket create date to the first agent email reply",
+    description: "The time from the ticket create date to the first agent email reply",
     groupName: "ticket_activity",
     options: [],
     displayOrder: -1,
@@ -3155,8 +3125,7 @@ const ticketsDefinition = [
     createdAt: "2019-08-06T02:43:03.036Z",
     label: "Recent Sales Email Replied Date",
     fieldType: "date",
-    description:
-      "The last time a tracked sales email was replied to for this ticket",
+    description: "The last time a tracked sales email was replied to for this ticket",
     groupName: "ticketinformation",
     options: [],
     displayOrder: 6,
@@ -3275,8 +3244,7 @@ const ticketsDefinition = [
     createdAt: "2019-08-06T02:43:02.891Z",
     label: "Number of times contacted (Ticket Note)",
     fieldType: "number",
-    description:
-      "The number of times a call, email or meeting was logged for this ticket",
+    description: "The number of times a call, email or meeting was logged for this ticket",
     groupName: "ticketinformation",
     options: [],
     displayOrder: 6,
@@ -3323,8 +3291,7 @@ const ticketsDefinition = [
     createdAt: "2020-06-30T15:57:38.662Z",
     label: "HubSpot team",
     fieldType: "select",
-    description:
-      "Primary team of the ticket owner. This property is set automatically by HubSpot.",
+    description: "Primary team of the ticket owner. This property is set automatically by HubSpot.",
     groupName: "ticketinformation",
     options: [],
     displayOrder: 7,
@@ -3347,8 +3314,7 @@ const ticketsDefinition = [
     createdAt: "2019-08-06T02:43:02.603Z",
     label: "All owner ids",
     fieldType: "select",
-    description:
-      "The value of all owner referencing properties for this object, both default and custom",
+    description: "The value of all owner referencing properties for this object, both default and custom",
     groupName: "ticketinformation",
     options: [],
     displayOrder: 8,
@@ -3674,8 +3640,7 @@ const tasksDefinition = [
       readOnlyValue: true,
     },
     formField: false,
-    calculationFormula:
-      "extract_most_recent_email_reply_text(string(hs_task_body))",
+    calculationFormula: "extract_most_recent_email_reply_text(string(hs_task_body))",
   },
   {
     name: "hs_body_preview_html",
@@ -3699,8 +3664,7 @@ const tasksDefinition = [
       readOnlyValue: true,
     },
     formField: false,
-    calculationFormula:
-      "extract_most_recent_email_reply_html(string(hs_task_body))",
+    calculationFormula: "extract_most_recent_email_reply_html(string(hs_task_body))",
   },
   {
     name: "hs_body_preview_is_truncated",
@@ -3709,8 +3673,7 @@ const tasksDefinition = [
     createdAt: "2019-12-12T14:41:12.420Z",
     label: "Body Preview Truncated",
     fieldType: "booleancheckbox",
-    description:
-      "Indicates if the engagement body was truncated for the preview",
+    description: "Indicates if the engagement body was truncated for the preview",
     groupName: "engagement",
     options: [
       { label: "True", value: "true", displayOrder: 0, hidden: false },
@@ -3898,8 +3861,7 @@ const tasksDefinition = [
     createdAt: "2019-12-12T14:41:12.082Z",
     label: "GDPR deleted",
     fieldType: "booleancheckbox",
-    description:
-      "Indicates the body of this engagement has been cleared because of a GDPR delete request",
+    description: "Indicates the body of this engagement has been cleared because of a GDPR delete request",
     groupName: "engagement",
     options: [
       { label: "True", value: "true", displayOrder: 0, hidden: false },
@@ -4162,8 +4124,7 @@ const tasksDefinition = [
     createdAt: "2020-08-28T12:02:05.933Z",
     label: "Associated Queue Objects",
     fieldType: "number",
-    description:
-      "The number of objects associated with this task that support task queues",
+    description: "The number of objects associated with this task that support task queues",
     groupName: "task",
     options: [],
     displayOrder: -1,
@@ -4209,8 +4170,7 @@ const tasksDefinition = [
     type: "number",
     label: "Record ID",
     fieldType: "number",
-    description:
-      "The unique ID for this record. This value is automatically set by HubSpot and may not be modified.",
+    description: "The unique ID for this record. This value is automatically set by HubSpot and may not be modified.",
     groupName: "taskinformation",
     options: [],
     displayOrder: -1,
@@ -4252,8 +4212,7 @@ const tasksDefinition = [
     type: "string",
     label: "Record Creation Source ID",
     fieldType: "text",
-    description:
-      "The sourceId -- further detail -- of the source that created this object record",
+    description: "The sourceId -- further detail -- of the source that created this object record",
     groupName: "taskinformation",
     options: [],
     displayOrder: -1,
@@ -4274,8 +4233,7 @@ const tasksDefinition = [
     type: "number",
     label: "Record Creation Source User ID",
     fieldType: "number",
-    description:
-      "User ID of the user who initiated creation of this object record",
+    description: "User ID of the user who initiated creation of this object record",
     groupName: "taskinformation",
     options: [],
     displayOrder: -1,
@@ -4437,8 +4395,7 @@ const tasksDefinition = [
     createdAt: "2023-01-17T20:50:38.888Z",
     label: "Campaign GUID",
     fieldType: "text",
-    description:
-      "The unique id of the campaign that the task is associated with",
+    description: "The unique id of the campaign that the task is associated with",
     groupName: "task",
     options: [],
     displayOrder: -1,
@@ -4476,8 +4433,7 @@ const tasksDefinition = [
       readOnlyValue: true,
     },
     formField: false,
-    calculationFormula:
-      "if string(hs_task_status) equals 'COMPLETED' then 1 else 0",
+    calculationFormula: "if string(hs_task_status) equals 'COMPLETED' then 1 else 0",
   },
   {
     name: "hs_task_completion_date",
@@ -4532,8 +4488,7 @@ const tasksDefinition = [
     createdAt: "2023-01-17T20:24:20.670Z",
     label: "Task Family",
     fieldType: "select",
-    description:
-      'An enumeration field describing what type of task this is i.e. "SALES" or "MARKETING"',
+    description: 'An enumeration field describing what type of task this is i.e. "SALES" or "MARKETING"',
     groupName: "task",
     options: [
       { label: "Sales", value: "SALES", displayOrder: 0, hidden: false },
@@ -4637,8 +4592,7 @@ const tasksDefinition = [
       readOnlyValue: true,
     },
     formField: false,
-    calculationFormula:
-      "if string(hs_task_status) equals 'COMPLETED' then 1 else 0",
+    calculationFormula: "if string(hs_task_status) equals 'COMPLETED' then 1 else 0",
   },
   {
     name: "hs_task_is_completed_call",
@@ -4722,8 +4676,7 @@ const tasksDefinition = [
     createdAt: "2023-05-12T15:10:32.773Z",
     label: "Sequence tasks completed",
     fieldType: "calculation_equation",
-    description:
-      "A 1 if the task was created by a sequence and completed, otherwise 0.",
+    description: "A 1 if the task was created by a sequence and completed, otherwise 0.",
     groupName: "taskinformation",
     options: [],
     displayOrder: -1,
@@ -4748,8 +4701,7 @@ const tasksDefinition = [
     createdAt: "2023-08-09T16:48:56.098Z",
     label: "Is Overdue",
     fieldType: "booleancheckbox",
-    description:
-      "True if the task's due date has elapsed and the task is not completed, otherwise false.",
+    description: "True if the task's due date has elapsed and the task is not completed, otherwise false.",
     groupName: "taskinformation",
     options: [
       { label: "Yes", value: "true", displayOrder: 0, hidden: false },
@@ -4956,8 +4908,7 @@ const tasksDefinition = [
     createdAt: "2021-06-16T17:47:20.211Z",
     label: "Relative Task Reminders",
     fieldType: "text",
-    description:
-      "The dates (relative to the due date) when reminders will be sent",
+    description: "The dates (relative to the due date) when reminders will be sent",
     groupName: "task",
     options: [],
     displayOrder: -1,
@@ -5026,8 +4977,7 @@ const tasksDefinition = [
     createdAt: "2019-12-12T14:41:12.492Z",
     label: "Send Default Reminder",
     fieldType: "radio",
-    description:
-      "Whether or not a reminder should be sent when the task is due",
+    description: "Whether or not a reminder should be sent when the task is due",
     groupName: "task",
     options: [
       { label: "True", value: "true", displayOrder: 0, hidden: false },
@@ -5053,8 +5003,7 @@ const tasksDefinition = [
     createdAt: "2020-09-30T13:14:21.411Z",
     label: "Sequence Enrollment Is Active",
     fieldType: "booleancheckbox",
-    description:
-      "Whether the sequence enrollment this task is a part of is currently active",
+    description: "Whether the sequence enrollment this task is a part of is currently active",
     groupName: "task",
     options: [
       {
@@ -5518,8 +5467,7 @@ const tasksDefinition = [
     createdAt: "2019-12-12T14:41:13.454Z",
     label: "All owner ids",
     fieldType: "select",
-    description:
-      "The value of all owner referencing properties for this object, both default and custom",
+    description: "The value of all owner referencing properties for this object, both default and custom",
     groupName: "engagement",
     options: [],
     displayOrder: 8,
@@ -7559,8 +7507,7 @@ const contactsDefinition = [
     createdAt: "2020-06-30T15:57:37.161Z",
     label: "Days To Close",
     fieldType: "number",
-    description:
-      "Count of days elapsed between creation and being closed as a customer. Set automatically.",
+    description: "Count of days elapsed between creation and being closed as a customer. Set automatically.",
     groupName: "deal_information",
     options: [],
     displayOrder: -1,
@@ -7819,8 +7766,7 @@ const contactsDefinition = [
     createdAt: "2020-06-30T15:57:36.101Z",
     label: "First Touch Converting Campaign",
     fieldType: "text",
-    description:
-      "Campaign responsible for the first touch creation of this contact.",
+    description: "Campaign responsible for the first touch creation of this contact.",
     groupName: "analyticsinformation",
     options: [],
     displayOrder: -1,
@@ -7843,8 +7789,7 @@ const contactsDefinition = [
     createdAt: "2020-06-30T15:57:36.627Z",
     label: "Last Touch Converting Campaign",
     fieldType: "text",
-    description:
-      "Campaign responsible for the last touch creation of this contact.",
+    description: "Campaign responsible for the last touch creation of this contact.",
     groupName: "analyticsinformation",
     options: [],
     displayOrder: -1,
@@ -8216,8 +8161,7 @@ const contactsDefinition = [
     createdAt: "2022-10-24T15:35:27.979Z",
     label: "Time enrolled in registration follow up emails",
     fieldType: "date",
-    description:
-      "The time when the contact was first enrolled in the registration follow up email flow",
+    description: "The time when the contact was first enrolled in the registration follow up email flow",
     groupName: "contactinformation",
     options: [],
     displayOrder: -1,
@@ -8263,8 +8207,7 @@ const contactsDefinition = [
     createdAt: "2019-08-06T02:41:10.972Z",
     label: "Registered At",
     fieldType: "date",
-    description:
-      "Datetime at which this user was set up for Content Membership",
+    description: "Datetime at which this user was set up for Content Membership",
     groupName: "contactinformation",
     options: [],
     displayOrder: -1,
@@ -8287,8 +8230,7 @@ const contactsDefinition = [
     createdAt: "2019-08-06T02:41:11.128Z",
     label: "Domain to which registration email was sent",
     fieldType: "text",
-    description:
-      "Domain to which the registration invitation email for Content Membership was sent to",
+    description: "Domain to which the registration invitation email for Content Membership was sent to",
     groupName: "contactinformation",
     options: [],
     displayOrder: -1,
@@ -8311,8 +8253,7 @@ const contactsDefinition = [
     createdAt: "2019-08-06T02:41:11.098Z",
     label: "Time registration email was sent",
     fieldType: "date",
-    description:
-      "Datetime at which this user was sent a registration invitation email for Content Membership",
+    description: "Datetime at which this user was sent a registration invitation email for Content Membership",
     groupName: "contactinformation",
     options: [],
     displayOrder: -1,
@@ -8397,8 +8338,7 @@ const contactsDefinition = [
     createdAt: "2020-10-18T01:50:25.620Z",
     label: "Count of unengaged contacts",
     fieldType: "calculation_equation",
-    description:
-      "if contact is assigned and unworked, set to 1. if contact is assigned and worked, set to 0.",
+    description: "if contact is assigned and unworked, set to 1. if contact is assigned and worked, set to 0.",
     groupName: "contactinformation",
     options: [],
     displayOrder: -1,
@@ -8423,8 +8363,7 @@ const contactsDefinition = [
     createdAt: "2020-10-18T01:49:38.540Z",
     label: "Count of engaged contacts",
     fieldType: "calculation_equation",
-    description:
-      "if contact is assigned and worked, set to 1. if contact is assigned and unworked, set to 0.",
+    description: "if contact is assigned and worked, set to 1. if contact is assigned and unworked, set to 0.",
     groupName: "contactinformation",
     options: [],
     displayOrder: -1,
@@ -8449,8 +8388,7 @@ const contactsDefinition = [
     createdAt: "2019-08-06T02:41:10.735Z",
     label: "Created By Conversations",
     fieldType: "booleancheckbox",
-    description:
-      "Flag indicating this contact was created by the Conversations API",
+    description: "Flag indicating this contact was created by the Conversations API",
     groupName: "contactinformation",
     options: [
       { label: "True", value: "true", displayOrder: 0, hidden: false },
@@ -8522,8 +8460,7 @@ const contactsDefinition = [
     createdAt: "2021-08-25T18:25:22.818Z",
     label: "Date entered 'Customer (Lifecycle Stage Pipeline)'",
     fieldType: "calculation_read_time",
-    description:
-      "The date and time when the contact entered the 'Customer' stage, 'Lifecycle Stage Pipeline' pipeline",
+    description: "The date and time when the contact entered the 'Customer' stage, 'Lifecycle Stage Pipeline' pipeline",
     groupName: "contactinformation",
     options: [],
     displayOrder: -1,
@@ -8570,8 +8507,7 @@ const contactsDefinition = [
     createdAt: "2021-08-25T18:23:36.856Z",
     label: "Date entered 'Lead (Lifecycle Stage Pipeline)'",
     fieldType: "calculation_read_time",
-    description:
-      "The date and time when the contact entered the 'Lead' stage, 'Lifecycle Stage Pipeline' pipeline",
+    description: "The date and time when the contact entered the 'Lead' stage, 'Lifecycle Stage Pipeline' pipeline",
     groupName: "contactinformation",
     options: [],
     displayOrder: -1,
@@ -8642,8 +8578,7 @@ const contactsDefinition = [
     createdAt: "2021-08-25T18:26:15.390Z",
     label: "Date entered 'Other (Lifecycle Stage Pipeline)'",
     fieldType: "calculation_read_time",
-    description:
-      "The date and time when the contact entered the 'Other' stage, 'Lifecycle Stage Pipeline' pipeline",
+    description: "The date and time when the contact entered the 'Other' stage, 'Lifecycle Stage Pipeline' pipeline",
     groupName: "contactinformation",
     options: [],
     displayOrder: -1,
@@ -8714,8 +8649,7 @@ const contactsDefinition = [
     createdAt: "2021-08-25T18:25:31.332Z",
     label: "Date exited 'Customer (Lifecycle Stage Pipeline)'",
     fieldType: "calculation_read_time",
-    description:
-      "The date and time when the contact exited the 'Customer' stage, 'Lifecycle Stage Pipeline' pipeline",
+    description: "The date and time when the contact exited the 'Customer' stage, 'Lifecycle Stage Pipeline' pipeline",
     groupName: "contactinformation",
     options: [],
     displayOrder: -1,
@@ -8762,8 +8696,7 @@ const contactsDefinition = [
     createdAt: "2021-08-25T18:23:45.352Z",
     label: "Date exited 'Lead (Lifecycle Stage Pipeline)'",
     fieldType: "calculation_read_time",
-    description:
-      "The date and time when the contact exited the 'Lead' stage, 'Lifecycle Stage Pipeline' pipeline",
+    description: "The date and time when the contact exited the 'Lead' stage, 'Lifecycle Stage Pipeline' pipeline",
     groupName: "contactinformation",
     options: [],
     displayOrder: -1,
@@ -8834,8 +8767,7 @@ const contactsDefinition = [
     createdAt: "2021-08-25T18:26:23.882Z",
     label: "Date exited 'Other (Lifecycle Stage Pipeline)'",
     fieldType: "calculation_read_time",
-    description:
-      "The date and time when the contact exited the 'Other' stage, 'Lifecycle Stage Pipeline' pipeline",
+    description: "The date and time when the contact exited the 'Other' stage, 'Lifecycle Stage Pipeline' pipeline",
     groupName: "contactinformation",
     options: [],
     displayOrder: -1,
@@ -8906,8 +8838,7 @@ const contactsDefinition = [
     createdAt: "2019-08-06T02:41:11.354Z",
     label: "Recent Document Revisit Date",
     fieldType: "date",
-    description:
-      "The last time a shared document (presentation) was accessed by this contact",
+    description: "The last time a shared document (presentation) was accessed by this contact",
     groupName: "contactinformation",
     options: [],
     displayOrder: -1,
@@ -9032,8 +8963,7 @@ const contactsDefinition = [
       {
         label: "Content",
         value: "CONTENT",
-        description:
-          "Content in the body or subject of an email triggered a spam filter",
+        description: "Content in the body or subject of an email triggered a spam filter",
         displayOrder: -1,
         hidden: false,
       },
@@ -9061,8 +8991,7 @@ const contactsDefinition = [
       {
         label: "Spam",
         value: "SPAM",
-        description:
-          "An email was marked as spam by the recipient or their inbox provider",
+        description: "An email was marked as spam by the recipient or their inbox provider",
         displayOrder: -1,
         hidden: false,
       },
@@ -9102,8 +9031,7 @@ const contactsDefinition = [
       {
         label: "Content",
         value: "CONTENT",
-        description:
-          "Content in the body or subject of an email triggered a spam filter",
+        description: "Content in the body or subject of an email triggered a spam filter",
         displayOrder: 0,
         hidden: false,
       },
@@ -9131,8 +9059,7 @@ const contactsDefinition = [
       {
         label: "Spam",
         value: "SPAM",
-        description:
-          "An email was marked as spam by the recipient or their inbox provider",
+        description: "An email was marked as spam by the recipient or their inbox provider",
         displayOrder: 4,
         hidden: false,
       },
@@ -9192,8 +9119,7 @@ const contactsDefinition = [
     createdAt: "2019-11-12T17:00:50.790Z",
     label: "Email address automated quarantine reason",
     fieldType: "select",
-    description:
-      "The automated reason why the email address has been quarantined.",
+    description: "The automated reason why the email address has been quarantined.",
     groupName: "emailinformation",
     options: [
       {
@@ -9629,8 +9555,7 @@ const contactsDefinition = [
     createdAt: "2019-08-06T02:41:12.055Z",
     label: "Should be shown an NPS web survey",
     fieldType: "booleancheckbox",
-    description:
-      "Whether or not a contact should be shown an NPS web survey. This is automatically set by HubSpot.",
+    description: "Whether or not a contact should be shown an NPS web survey. This is automatically set by HubSpot.",
     groupName: "contactinformation",
     options: [
       { label: "True", value: "true", displayOrder: 0, hidden: false },
@@ -9775,8 +9700,7 @@ const contactsDefinition = [
     createdAt: "2021-10-01T19:36:46.787Z",
     label: "Contact has an active subscription",
     fieldType: "calculation_rollup",
-    description:
-      "The rollup property value is 1 when the contact has an active Subscription or 0 otherwise.",
+    description: "The rollup property value is 1 when the contact has an active Subscription or 0 otherwise.",
     groupName: "contactinformation",
     options: [],
     displayOrder: -1,
@@ -10050,8 +9974,7 @@ const contactsDefinition = [
       readOnlyValue: true,
     },
     formField: false,
-    calculationFormula:
-      "max(hs_latest_sequence_unenrolled_date, hs_latest_sequence_finished_date)",
+    calculationFormula: "max(hs_latest_sequence_unenrolled_date, hs_latest_sequence_finished_date)",
   },
   {
     name: "hs_latest_sequence_enrolled",
@@ -10397,8 +10320,7 @@ const contactsDefinition = [
     createdAt: "2019-12-10T15:32:34.523Z",
     label: "Marketing contact status source name",
     fieldType: "text",
-    description:
-      "The ID of the activity that set the contact as a marketing contact",
+    description: "The ID of the activity that set the contact as a marketing contact",
     groupName: "contactinformation",
     options: [],
     displayOrder: -1,
@@ -10421,8 +10343,7 @@ const contactsDefinition = [
     createdAt: "2019-12-10T15:32:34.082Z",
     label: "Marketing contact status source type",
     fieldType: "select",
-    description:
-      "The type of the activity that set the contact as a marketing contact",
+    description: "The type of the activity that set the contact as a marketing contact",
     groupName: "contactinformation",
     options: [
       {
@@ -10547,8 +10468,7 @@ const contactsDefinition = [
     createdAt: "2020-02-06T18:29:53.512Z",
     label: "Marketing contact until next update",
     fieldType: "booleancheckbox",
-    description:
-      "Specifies if this contact will be set as non-marketing on renewal",
+    description: "Specifies if this contact will be set as non-marketing on renewal",
     groupName: "contactinformation",
     options: [
       {
@@ -10608,8 +10528,7 @@ const contactsDefinition = [
     type: "number",
     label: "Record ID",
     fieldType: "number",
-    description:
-      "The unique ID for this record. This value is automatically set by HubSpot and may not be modified.",
+    description: "The unique ID for this record. This value is automatically set by HubSpot and may not be modified.",
     groupName: "contactinformation",
     options: [],
     displayOrder: -1,
@@ -10651,8 +10570,7 @@ const contactsDefinition = [
     type: "string",
     label: "Record Creation Source ID",
     fieldType: "text",
-    description:
-      "The sourceId -- further detail -- of the source that created this object record",
+    description: "The sourceId -- further detail -- of the source that created this object record",
     groupName: "contactinformation",
     options: [],
     displayOrder: -1,
@@ -10673,8 +10591,7 @@ const contactsDefinition = [
     type: "number",
     label: "Record Creation Source User ID",
     fieldType: "number",
-    description:
-      "User ID of the user who initiated creation of this object record",
+    description: "User ID of the user who initiated creation of this object record",
     groupName: "contactinformation",
     options: [],
     displayOrder: -1,
@@ -10851,8 +10768,7 @@ const contactsDefinition = [
     createdAt: "2020-07-24T00:40:35.857Z",
     label: "Date of first engagement",
     fieldType: "date",
-    description:
-      "The date the current contact owner first engaged with the contact. Used in Sales Analytics app.",
+    description: "The date the current contact owner first engaged with the contact. Used in Sales Analytics app.",
     groupName: "contactinformation",
     options: [],
     displayOrder: -1,
@@ -11313,8 +11229,7 @@ const contactsDefinition = [
     createdAt: "2020-06-30T15:57:37.063Z",
     label: "Currently in Sequence",
     fieldType: "booleancheckbox",
-    description:
-      "A yes/no field that indicates whether the contact is currently in a Sequence.",
+    description: "A yes/no field that indicates whether the contact is currently in a Sequence.",
     groupName: "contact_activity",
     options: [
       {
@@ -11463,8 +11378,7 @@ const contactsDefinition = [
       readOnlyValue: false,
     },
     formField: false,
-    calculationFormula:
-      "time_between(createdate, hs_lifecyclestage_customer_date)",
+    calculationFormula: "time_between(createdate, hs_lifecyclestage_customer_date)",
   },
   {
     name: "hs_time_between_contact_creation_and_deal_creation",
@@ -11689,8 +11603,7 @@ const contactsDefinition = [
     createdAt: "2020-02-25T21:58:14.883Z",
     label: "Lead response time",
     fieldType: "number",
-    description:
-      "Time it took current owner to do first qualifying engagement (ms). Used in Sales Analytics app.",
+    description: "Time it took current owner to do first qualifying engagement (ms). Used in Sales Analytics app.",
     groupName: "contactinformation",
     options: [],
     displayOrder: -1,
@@ -11715,8 +11628,7 @@ const contactsDefinition = [
     createdAt: "2020-12-11T19:45:02.957Z",
     label: "Time to move from lead to customer",
     fieldType: "calculation_equation",
-    description:
-      " How long it takes for a contact to move from the HubSpot lead stage to the HubSpot customer stage.",
+    description: " How long it takes for a contact to move from the HubSpot lead stage to the HubSpot customer stage.",
     groupName: "contactinformation",
     options: [],
     displayOrder: -1,
@@ -11731,8 +11643,7 @@ const contactsDefinition = [
       readOnlyValue: false,
     },
     formField: false,
-    calculationFormula:
-      "time_between(hs_lifecyclestage_lead_date, hs_lifecyclestage_customer_date)",
+    calculationFormula: "time_between(hs_lifecyclestage_lead_date, hs_lifecyclestage_customer_date)",
   },
   {
     name: "hs_time_to_move_from_marketingqualifiedlead_to_customer",
@@ -11757,8 +11668,7 @@ const contactsDefinition = [
       readOnlyValue: false,
     },
     formField: false,
-    calculationFormula:
-      "time_between(hs_lifecyclestage_marketingqualifiedlead_date, hs_lifecyclestage_customer_date)",
+    calculationFormula: "time_between(hs_lifecyclestage_marketingqualifiedlead_date, hs_lifecyclestage_customer_date)",
   },
   {
     name: "hs_time_to_move_from_opportunity_to_customer",
@@ -11783,8 +11693,7 @@ const contactsDefinition = [
       readOnlyValue: false,
     },
     formField: false,
-    calculationFormula:
-      "time_between(hs_lifecyclestage_opportunity_date, hs_lifecyclestage_customer_date)",
+    calculationFormula: "time_between(hs_lifecyclestage_opportunity_date, hs_lifecyclestage_customer_date)",
   },
   {
     name: "hs_time_to_move_from_salesqualifiedlead_to_customer",
@@ -11809,8 +11718,7 @@ const contactsDefinition = [
       readOnlyValue: false,
     },
     formField: false,
-    calculationFormula:
-      "time_between(hs_lifecyclestage_salesqualifiedlead_date, hs_lifecyclestage_customer_date)",
+    calculationFormula: "time_between(hs_lifecyclestage_salesqualifiedlead_date, hs_lifecyclestage_customer_date)",
   },
   {
     name: "hs_time_to_move_from_subscriber_to_customer",
@@ -11835,8 +11743,7 @@ const contactsDefinition = [
       readOnlyValue: false,
     },
     formField: false,
-    calculationFormula:
-      "time_between(hs_lifecyclestage_subscriber_date, hs_lifecyclestage_customer_date)",
+    calculationFormula: "time_between(hs_lifecyclestage_subscriber_date, hs_lifecyclestage_customer_date)",
   },
   {
     name: "hs_timezone",
@@ -15223,8 +15130,7 @@ const contactsDefinition = [
     type: "number",
     updatedAt: "2023-08-15T14:49:30.334Z",
     createdAt: "2023-07-12T20:47:10.959Z",
-    label:
-      'Cumulative time in "Marketing Qualified Lead (Lifecycle Stage Pipeline)"',
+    label: 'Cumulative time in "Marketing Qualified Lead (Lifecycle Stage Pipeline)"',
     fieldType: "number",
     description:
       "The cumulative time in seconds spent by the contact in the 'Marketing Qualified Lead' stage, 'Lifecycle Stage Pipeline' pipeline",
@@ -15296,8 +15202,7 @@ const contactsDefinition = [
     type: "number",
     updatedAt: "2023-08-15T14:55:16.255Z",
     createdAt: "2023-07-12T20:48:59.213Z",
-    label:
-      'Cumulative time in "Sales Qualified Lead (Lifecycle Stage Pipeline)"',
+    label: 'Cumulative time in "Sales Qualified Lead (Lifecycle Stage Pipeline)"',
     fieldType: "number",
     description:
       "The cumulative time in seconds spent by the contact in the 'Sales Qualified Lead' stage, 'Lifecycle Stage Pipeline' pipeline",
@@ -15347,8 +15252,7 @@ const contactsDefinition = [
     createdAt: "2023-07-12T22:37:01.087Z",
     label: 'Date entered "Customer (Lifecycle Stage Pipeline)"',
     fieldType: "date",
-    description:
-      "The date and time when the contact entered the 'Customer' stage, 'Lifecycle Stage Pipeline' pipeline",
+    description: "The date and time when the contact entered the 'Customer' stage, 'Lifecycle Stage Pipeline' pipeline",
     groupName: "contactinformation",
     options: [],
     displayOrder: -1,
@@ -15395,8 +15299,7 @@ const contactsDefinition = [
     createdAt: "2023-07-12T22:29:16.176Z",
     label: 'Date entered "Lead (Lifecycle Stage Pipeline)"',
     fieldType: "date",
-    description:
-      "The date and time when the contact entered the 'Lead' stage, 'Lifecycle Stage Pipeline' pipeline",
+    description: "The date and time when the contact entered the 'Lead' stage, 'Lifecycle Stage Pipeline' pipeline",
     groupName: "contactinformation",
     options: [],
     displayOrder: -1,
@@ -15467,8 +15370,7 @@ const contactsDefinition = [
     createdAt: "2023-07-12T22:01:00.974Z",
     label: 'Date entered "Other (Lifecycle Stage Pipeline)"',
     fieldType: "date",
-    description:
-      "The date and time when the contact entered the 'Other' stage, 'Lifecycle Stage Pipeline' pipeline",
+    description: "The date and time when the contact entered the 'Other' stage, 'Lifecycle Stage Pipeline' pipeline",
     groupName: "contactinformation",
     options: [],
     displayOrder: -1,
@@ -15539,8 +15441,7 @@ const contactsDefinition = [
     createdAt: "2023-07-12T22:22:21.196Z",
     label: 'Date exited "Customer (Lifecycle Stage Pipeline)"',
     fieldType: "date",
-    description:
-      "The date and time when the contact exited the 'Customer' stage, 'Lifecycle Stage Pipeline' pipeline",
+    description: "The date and time when the contact exited the 'Customer' stage, 'Lifecycle Stage Pipeline' pipeline",
     groupName: "contactinformation",
     options: [],
     displayOrder: -1,
@@ -15587,8 +15488,7 @@ const contactsDefinition = [
     createdAt: "2023-07-12T22:41:33.308Z",
     label: 'Date exited "Lead (Lifecycle Stage Pipeline)"',
     fieldType: "date",
-    description:
-      "The date and time when the contact exited the 'Lead' stage, 'Lifecycle Stage Pipeline' pipeline",
+    description: "The date and time when the contact exited the 'Lead' stage, 'Lifecycle Stage Pipeline' pipeline",
     groupName: "contactinformation",
     options: [],
     displayOrder: -1,
@@ -15659,8 +15559,7 @@ const contactsDefinition = [
     createdAt: "2023-07-12T22:05:15.999Z",
     label: 'Date exited "Other (Lifecycle Stage Pipeline)"',
     fieldType: "date",
-    description:
-      "The date and time when the contact exited the 'Other' stage, 'Lifecycle Stage Pipeline' pipeline",
+    description: "The date and time when the contact exited the 'Other' stage, 'Lifecycle Stage Pipeline' pipeline",
     groupName: "contactinformation",
     options: [],
     displayOrder: -1,
@@ -15801,8 +15700,7 @@ const contactsDefinition = [
     type: "number",
     updatedAt: "2023-08-15T14:37:25.938Z",
     createdAt: "2023-07-12T21:55:48.800Z",
-    label:
-      'Latest time in "Marketing Qualified Lead (Lifecycle Stage Pipeline)"',
+    label: 'Latest time in "Marketing Qualified Lead (Lifecycle Stage Pipeline)"',
     fieldType: "number",
     description:
       "The total time in seconds spent by the contact in the 'Marketing Qualified Lead' stage, 'Lifecycle Stage Pipeline' pipeline since it last entered this stage",
@@ -15948,8 +15846,7 @@ const contactsDefinition = [
     createdAt: "2022-07-20T14:44:24.271Z",
     label: "WhatsApp Phone Number",
     fieldType: "phonenumber",
-    description:
-      "The phone number associated with the contact’s WhatsApp account.",
+    description: "The phone number associated with the contact’s WhatsApp account.",
     groupName: "contactinformation",
     options: [],
     displayOrder: -1,
@@ -16258,8 +16155,7 @@ const contactsDefinition = [
     createdAt: "2020-06-30T15:57:36.849Z",
     label: "Number of Associated Deals",
     fieldType: "number",
-    description:
-      "Count of deals associated with this contact. Set automatically by HubSpot.",
+    description: "Count of deals associated with this contact. Set automatically by HubSpot.",
     groupName: "deal_information",
     options: [],
     displayOrder: -1,
@@ -16374,8 +16270,7 @@ const contactsDefinition = [
     createdAt: "2020-06-30T15:57:36.038Z",
     label: "Recent Deal Amount",
     fieldType: "number",
-    description:
-      "Amount of last closed won deal associated with a contact. Set automatically.",
+    description: "Amount of last closed won deal associated with a contact. Set automatically.",
     groupName: "deal_information",
     options: [],
     displayOrder: -1,
@@ -16399,8 +16294,7 @@ const contactsDefinition = [
     createdAt: "2020-06-30T15:57:36.981Z",
     label: "Recent Deal Close Date",
     fieldType: "date",
-    description:
-      "Date last deal associated with contact was closed-won. Set automatically.",
+    description: "Date last deal associated with contact was closed-won. Set automatically.",
     groupName: "deal_information",
     options: [],
     displayOrder: -1,
@@ -16519,8 +16413,7 @@ const contactsDefinition = [
     createdAt: "2020-06-30T15:57:37.264Z",
     label: "Total Revenue",
     fieldType: "number",
-    description:
-      "Sum of all closed-won deal revenue associated with the contact. Set automatically.",
+    description: "Sum of all closed-won deal revenue associated with the contact. Set automatically.",
     groupName: "deal_information",
     options: [],
     displayOrder: -1,
@@ -16591,8 +16484,7 @@ const contactsDefinition = [
     createdAt: "2020-06-30T15:57:36.596Z",
     label: "First Page Seen",
     fieldType: "text",
-    description:
-      "First page the contact visited on your website. Set automatically.",
+    description: "First page the contact visited on your website. Set automatically.",
     groupName: "analyticsinformation",
     options: [],
     displayOrder: 0,
@@ -16639,8 +16531,7 @@ const contactsDefinition = [
     createdAt: "2023-07-16T17:37:24.567Z",
     label: "Opted out of email: Customer Service Communication",
     fieldType: "booleancheckbox",
-    description:
-      "Indicates that the current email address has opted out of this email type.",
+    description: "Indicates that the current email address has opted out of this email type.",
     groupName: "emailinformation",
     options: [
       {
@@ -16679,8 +16570,7 @@ const contactsDefinition = [
     createdAt: "2023-07-16T17:37:30.589Z",
     label: "Opted out of email: One to One",
     fieldType: "booleancheckbox",
-    description:
-      "Indicates that the current email address has opted out of this email type.",
+    description: "Indicates that the current email address has opted out of this email type.",
     groupName: "emailinformation",
     options: [
       {
@@ -16803,8 +16693,7 @@ const contactsDefinition = [
     createdAt: "2020-06-30T15:57:36.761Z",
     label: "Last Page Seen",
     fieldType: "text",
-    description:
-      "Last page the contact visited on your website. Set automatically.",
+    description: "Last page the contact visited on your website. Set automatically.",
     groupName: "analyticsinformation",
     options: [],
     displayOrder: 1,
@@ -16874,8 +16763,7 @@ const contactsDefinition = [
     createdAt: "2020-06-30T15:57:36.804Z",
     label: "Number of Pageviews",
     fieldType: "number",
-    description:
-      "Total number of page views this contact has had on your website. Set automatically.",
+    description: "Total number of page views this contact has had on your website. Set automatically.",
     groupName: "analyticsinformation",
     options: [],
     displayOrder: 2,
@@ -16945,8 +16833,7 @@ const contactsDefinition = [
     createdAt: "2019-08-06T02:41:12.292Z",
     label: "Twitter Profile Photo",
     fieldType: "text",
-    description:
-      "The contact's Twitter profile photo. This is set by HubSpot using the contact's email address.",
+    description: "The contact's Twitter profile photo. This is set by HubSpot using the contact's email address.",
     groupName: "socialmediainformation",
     options: [],
     displayOrder: 2,
@@ -16992,8 +16879,7 @@ const contactsDefinition = [
     createdAt: "2020-06-30T15:57:36.512Z",
     label: "Number of Sessions",
     fieldType: "number",
-    description:
-      "Number of times a contact has come to your website. Set automatically.",
+    description: "Number of times a contact has come to your website. Set automatically.",
     groupName: "analyticsinformation",
     options: [],
     displayOrder: 3,
@@ -17110,8 +16996,7 @@ const contactsDefinition = [
     createdAt: "2019-08-06T02:41:11.848Z",
     label: "Unsubscribed from all email",
     fieldType: "booleancheckbox",
-    description:
-      "Indicates that the current email address has opted out of all email.",
+    description: "Indicates that the current email address has opted out of all email.",
     groupName: "emailinformation",
     options: [
       { label: "True", value: "true", displayOrder: 0, hidden: false },
@@ -17324,8 +17209,7 @@ const contactsDefinition = [
     createdAt: "2020-06-30T15:57:37.277Z",
     label: "Street Address",
     fieldType: "text",
-    description:
-      "Contact's street address, including apartment or unit number.",
+    description: "Contact's street address, including apartment or unit number.",
     groupName: "contactinformation",
     options: [],
     displayOrder: 6,
@@ -17444,8 +17328,7 @@ const contactsDefinition = [
     createdAt: "2020-06-30T15:57:36.496Z",
     label: "Time of First Session",
     fieldType: "date",
-    description:
-      "First time the contact visited your website. Set automatically.",
+    description: "First time the contact visited your website. Set automatically.",
     groupName: "analyticsinformation",
     options: [],
     displayOrder: 6,
@@ -17943,8 +17826,7 @@ const contactsDefinition = [
     createdAt: "2019-08-06T02:41:12.099Z",
     label: "Twitter Bio",
     fieldType: "text",
-    description:
-      "The contact's Twitter bio. This is set by HubSpot using the contact's email address.",
+    description: "The contact's Twitter bio. This is set by HubSpot using the contact's email address.",
     groupName: "socialmediainformation",
     options: [],
     displayOrder: 7,
@@ -17967,8 +17849,7 @@ const contactsDefinition = [
     createdAt: "2019-08-06T02:41:12.764Z",
     label: "All owner ids",
     fieldType: "select",
-    description:
-      "The value of all owner referencing properties for this object, both default and custom",
+    description: "The value of all owner referencing properties for this object, both default and custom",
     groupName: "contactinformation",
     options: [],
     displayOrder: 8,
@@ -17991,8 +17872,7 @@ const contactsDefinition = [
     createdAt: "2020-06-30T15:57:35.923Z",
     label: "Time of Last Session",
     fieldType: "date",
-    description:
-      "Timestamp for start of the most recent session for this contact to your website.",
+    description: "Timestamp for start of the most recent session for this contact to your website.",
     groupName: "analyticsinformation",
     options: [],
     displayOrder: 8,
@@ -18063,8 +17943,7 @@ const contactsDefinition = [
     createdAt: "2019-08-06T02:41:08.489Z",
     label: "State/Region",
     fieldType: "text",
-    description:
-      "The contact's state of residence. This might be set via import, form, or integration.",
+    description: "The contact's state of residence. This might be set via import, form, or integration.",
     groupName: "contactinformation",
     options: [],
     displayOrder: 8,
@@ -18312,8 +18191,7 @@ const contactsDefinition = [
     createdAt: "2019-08-06T02:41:08.603Z",
     label: "Postal Code",
     fieldType: "text",
-    description:
-      "The contact's zip code. This might be set via import, form, or integration.",
+    description: "The contact's zip code. This might be set via import, form, or integration.",
     groupName: "contactinformation",
     options: [],
     displayOrder: 9,
@@ -18336,8 +18214,7 @@ const contactsDefinition = [
     createdAt: "2019-08-06T02:41:08.647Z",
     label: "Country/Region",
     fieldType: "text",
-    description:
-      "The contact's country/region of residence. This might be set via import, form, or integration.",
+    description: "The contact's country/region of residence. This might be set via import, form, or integration.",
     groupName: "contactinformation",
     options: [],
     displayOrder: 10,
@@ -18384,8 +18261,7 @@ const contactsDefinition = [
     createdAt: "2020-06-30T15:57:36.919Z",
     label: "Original Source Drill-Down 1",
     fieldType: "text",
-    description:
-      "Additional information about the source the contact used to find your website. Set automatically.",
+    description: "Additional information about the source the contact used to find your website. Set automatically.",
     groupName: "analyticsinformation",
     options: [],
     displayOrder: 10,
@@ -18479,8 +18355,7 @@ const contactsDefinition = [
     createdAt: "2020-06-30T15:57:37.050Z",
     label: "Original Source Drill-Down 2",
     fieldType: "text",
-    description:
-      "Additional information about the source the contact used to find your website. Set automatically.",
+    description: "Additional information about the source the contact used to find your website. Set automatically.",
     groupName: "analyticsinformation",
     options: [],
     displayOrder: 11,
@@ -19410,8 +19285,7 @@ const contactsDefinition = [
     createdAt: "2020-06-30T15:57:36.890Z",
     label: "First Referring Site",
     fieldType: "text",
-    description:
-      "URL that referred the contact to your website. Set automatically.",
+    description: "URL that referred the contact to your website. Set automatically.",
     groupName: "analyticsinformation",
     options: [],
     displayOrder: 12,
@@ -19504,8 +19378,7 @@ const contactsDefinition = [
     createdAt: "2020-06-30T15:57:36.176Z",
     label: "Last Referring Site",
     fieldType: "text",
-    description:
-      "Last URL that referred contact to your website. Set automatically.",
+    description: "Last URL that referred contact to your website. Set automatically.",
     groupName: "analyticsinformation",
     options: [],
     displayOrder: 13,
@@ -19552,8 +19425,7 @@ const contactsDefinition = [
     createdAt: "2020-06-30T15:57:35.789Z",
     label: "Message",
     fieldType: "textarea",
-    description:
-      "A default property to be used for any message or comments a contact may want to leave on a form.",
+    description: "A default property to be used for any message or comments a contact may want to leave on a form.",
     groupName: "contact_activity",
     options: [],
     displayOrder: 13,
@@ -19600,8 +19472,7 @@ const contactsDefinition = [
     createdAt: "2020-06-30T15:57:35.852Z",
     label: "Average Pageviews",
     fieldType: "number",
-    description:
-      "Average number of pageviews per session for this contact. Set automatically.",
+    description: "Average number of pageviews per session for this contact. Set automatically.",
     groupName: "analyticsinformation",
     options: [],
     displayOrder: 14,
@@ -20093,8 +19964,7 @@ const contactsDefinition = [
     createdAt: "2019-08-06T02:41:09.377Z",
     label: "Primary Associated Company ID",
     fieldType: "number",
-    description:
-      "HubSpot defined ID of a contact's primary associated company in HubSpot.",
+    description: "HubSpot defined ID of a contact's primary associated company in HubSpot.",
     groupName: "contactinformation",
     options: [],
     referencedObjectType: "COMPANY",
@@ -20142,8 +20012,7 @@ const contactsDefinition = [
     createdAt: "2020-06-30T15:57:37.203Z",
     label: "Lead Rating",
     fieldType: "radio",
-    description:
-      "The rating of this contact based on their predictive lead score",
+    description: "The rating of this contact based on their predictive lead score",
     groupName: "contact_activity",
     options: [
       {
@@ -20195,8 +20064,7 @@ const contactsDefinition = [
     createdAt: "2020-06-30T15:57:37.006Z",
     label: "Predictive Lead Score",
     fieldType: "number",
-    description:
-      "A score calculated by HubSpot that represents a contact's likelihood to become a customer",
+    description: "A score calculated by HubSpot that represents a contact's likelihood to become a customer",
     groupName: "contact_activity",
     options: [],
     displayOrder: 1000,

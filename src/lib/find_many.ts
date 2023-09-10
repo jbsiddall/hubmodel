@@ -3,6 +3,7 @@ import {
   CollectionInstance,
   CollHelperInternalArgs,
   META,
+  NoExtraKeys,
   SelectArg,
 } from "./common.ts";
 import { z } from "./deps.ts";
@@ -13,7 +14,7 @@ interface FindManyArgs<
   Name extends COLLECTION_NAMES,
   S extends SelectArg<Name>,
 > {
-  select?: S;
+  select?: NoExtraKeys<SelectArg<Name>, S>;
   take?: number;
   skip?: number;
 }
@@ -50,8 +51,7 @@ const findMany = async <
     limit: take as any as number,
   });
 
-  const RawValidator: META["collectionProperties"][Name] =
-    __META__.collectionProperties[collectionName];
+  const RawValidator: META["collectionProperties"][Name] = __META__.collectionProperties[collectionName];
   // TODO remove any from following line
   const collectionValidator: typeof RawValidator = select === undefined
     ? RawValidator
