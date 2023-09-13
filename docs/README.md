@@ -128,7 +128,6 @@ _For more examples, please refer to the [Documentation](https://hubmodel.dev)_
 ### fetching
 
 ```typescript
-
 // retreive all contacts and all their properties
 await client.contacts.findMany({});
 
@@ -141,7 +140,6 @@ await client.contacts.findMany({
     firstname: true,
   },
 });
-
 ```
 
 ```typescript:./example/find-many-pagination.ts

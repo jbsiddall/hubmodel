@@ -1,4 +1,7 @@
 import { build, emptyDir } from "https://deno.land/x/dnt/mod.ts";
+import { copySync } from "https://deno.land/std@0.201.0/fs/copy.ts";
+
+
 
 await emptyDir("./npm");
 
@@ -13,7 +16,7 @@ await build({
   test: false,
   package: {
     name: "hubmodel",
-    version: Deno.args[0],
+    version: Deno.readTextFileSync('./VERSION').trim(),
     description: "Your package.",
     license: "MIT",
     repository: {
@@ -27,6 +30,6 @@ await build({
   postBuild() {
     // steps to run after building and before running the tests
     Deno.copyFileSync("LICENSE", "npm/LICENSE");
-    Deno.copyFileSync("README.md", "npm/README.md");
+    copySync('./docs', 'npm/docs')
   },
 });
