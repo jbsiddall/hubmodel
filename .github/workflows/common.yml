@@ -1,17 +1,14 @@
 # This workflow will run tests using node and then publish a package to GitHub Packages when a release is created
 # For more information see: https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
 
-name: Check
+name: Common
 
 on:
   workflow_call:
-  pull_request:
-    types:
-      - opened
-      - edited
-      - reopened
-      - synchronize
-
+    inputs:
+      version:
+        required: true
+        type: string
 jobs:
 
   test:
@@ -44,7 +41,7 @@ jobs:
       - uses: denoland/setup-deno@v1
         with:
           deno-version: "1.36.4"
-      - run: deno task ci:buildNpm
+      - run: deno task ci:buildNpm ${{inputs.version}}
       - run: zip build.zip -r npm
       - uses: actions/upload-artifact@v3
         with:
