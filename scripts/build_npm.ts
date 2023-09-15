@@ -16,7 +16,7 @@ await build({
   test: false,
   package: {
     name: "hubmodel",
-    version: Deno.readTextFileSync('./VERSION').trim(),
+    version: Deno.args[0],
     description: "Your package.",
     license: "MIT",
     repository: {
