@@ -20,6 +20,12 @@ export const createHubspotClient = (
   config: CreateHubspotClientConfig,
 ): EnrichedHubspotClient => {
   const client = createHubspotAxios(config);
+  return createHubspotClientForTesting(client);
+};
+
+export const createHubspotClientForTesting = (
+  client: ReturnType<typeof createHubspotAxios>,
+): EnrichedHubspotClient => {
   return R.mapObjIndexed(
     (_, collectionName) => createCollectionClient({ collectionName, client }),
     __META__.collectionProperties,

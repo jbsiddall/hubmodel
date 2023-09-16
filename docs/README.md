@@ -172,6 +172,7 @@ ticket/discussion etc and we can discuss :)
 - [ ] Create associations between hubspot objects
 - [ ] Update an object's fields
 - [ ] Update an object's associations
+- [ ] support all property operators when searching https://developers.hubspot.com/docs/api/crm/search
 - [ ] ORM - ORM like functionality, defining your hubspot schema in code and then syncing it to hubspot directly just
       like you would for a database. Inspired by [https://www.prisma.io/](https://www.prisma.io/)
 
