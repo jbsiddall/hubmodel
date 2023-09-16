@@ -1,0 +1,28 @@
+export const snapshot = {};
+
+snapshot[`global > FindManySelect > history 1`] = `
+{
+  baseURL: "https://api.hubapi.com/",
+  data: '{"properties":["email"]}',
+  headers: AxiosHeaders {
+    "Content-Type": "application/json",
+    Accept: "application/json, text/plain, */*",
+    Authorization: "Bearer testtoken",
+  },
+  url: "/crm/v3/objects/contacts/search",
+}
+`;
+
+snapshot[`global > FindManySelect > response 1`] = `
+[
+  {
+    archived: false,
+    createdAt: 2023-09-15T23:36:11.779Z,
+    id: "123",
+    properties: {
+      email: "fakeemail",
+    },
+    updatedAt: undefined,
+  },
+]
+`;

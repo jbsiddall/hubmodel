@@ -55,9 +55,7 @@ const findMany =
       axios: client,
       objectType: collectionName,
       properties: Object.keys(select ?? {}),
-      filterGroups: [],
       after: skip as any as number,
-      sorts: [],
       limit: take as any as number,
     });
 
