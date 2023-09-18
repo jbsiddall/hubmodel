@@ -1,3 +1,1 @@
-import { R, z } from "../deps.ts";
-
-export { R, z };
+export * from "../deps.ts";

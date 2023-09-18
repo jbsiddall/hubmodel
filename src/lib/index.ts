@@ -2,7 +2,7 @@ import { __META__ } from "../generated.ts";
 import { COLLECTION_NAMES, CollHelperInternalArgs } from "./common.ts";
 import { collectionHelpers as findManyCollectionHelpers } from "./find_many.ts";
 import { collectionHelpers as createCollectionHelpers } from "./create.ts";
-import { createHubspotAxios, CreateHubspotAxiosConfig } from "../rest.ts";
+import { configureAxios, CreateHubspotAxiosConfig } from "../rest.ts";
 import { R } from "./deps.ts";
 
 const createCollectionClient = <Name extends COLLECTION_NAMES>(args: CollHelperInternalArgs<Name>) => ({
@@ -19,15 +19,9 @@ interface CreateHubspotClientConfig extends CreateHubspotAxiosConfig {}
 export const createHubspotClient = (
   config: CreateHubspotClientConfig,
 ): EnrichedHubspotClient => {
-  const client = createHubspotAxios(config);
-  return createHubspotClientForTesting(client);
-};
-
-export const createHubspotClientForTesting = (
-  client: ReturnType<typeof createHubspotAxios>,
-): EnrichedHubspotClient => {
+  configureAxios(config);
   return R.mapObjIndexed(
-    (_, collectionName) => createCollectionClient({ collectionName, client }),
+    (_, collectionName) => createCollectionClient({ collectionName, client: config.axios }),
     __META__.collectionProperties,
   ) as any;
 };

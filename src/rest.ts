@@ -1,17 +1,16 @@
-import { axios, AxiosInstance, z } from "./deps.ts";
+import { AxiosInstance, z } from "./deps.ts";
 
 export interface CreateHubspotAxiosConfig {
+  axios: AxiosInstance;
   accessToken: string;
 }
 
-export const createHubspotAxios = (config: CreateHubspotAxiosConfig) => {
-  return axios.create({
-    baseURL: "https://api.hubapi.com/",
-    headers: {
-      Authorization: `Bearer ${config.accessToken}`,
-      "Content-Type": "application/json",
-    },
-  });
+export const configureAxios = (config: CreateHubspotAxiosConfig) => {
+  config.axios.defaults.baseURL = "https://api.hubapi.com/";
+  config.axios.defaults.headers.common = {
+    Authorization: `Bearer ${config.accessToken}`,
+    "Content-Type": "application/json",
+  };
 };
 
 const GeneralResponseValidator = z.object({

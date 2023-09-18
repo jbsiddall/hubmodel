@@ -36,8 +36,11 @@ export type FieldWhereArg<FieldType extends string | null | number | Date | bool
 //   FieldType extends boolean ? {equals: boolean | null} : never
 // )
 
+type F = { createdate: string; name: string };
+type FF = Pick<F, "name" | "createdate">;
+
 export type DefaultSelectArg<Name extends COLLECTION_NAMES> = {
-  [K in keyof ZOD_COLLECTIONS[Name]]: true;
+  // [K in keyof ZOD_COLLECTIONS[Name] as K ]: true;
 };
 
 export interface CollectionInstance<

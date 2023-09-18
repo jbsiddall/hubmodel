@@ -1,27 +1,137 @@
 export const snapshot = {};
 
-snapshot[`global > FindManySelect > history 1`] = `
-{
-  baseURL: "https://api.hubapi.com/",
-  data: '{"properties":["email"]}',
-  headers: AxiosHeaders {
-    "Content-Type": "application/json",
-    Accept: "application/json, text/plain, */*",
-    Authorization: "Bearer testtoken",
-  },
-  url: "/crm/v3/objects/contacts/search",
-}
-`;
-
-snapshot[`global > FindManySelect > response 1`] = `
+snapshot[`global > FindMany Select just email > response 1`] = `
 [
   {
     archived: false,
-    createdAt: 2023-09-15T23:36:11.779Z,
-    id: "123",
+    createdAt: 2023-07-16T17:37:35.426Z,
+    id: "1",
     properties: {
-      email: "fakeemail",
+      email: "emailmaria@hubspot.com",
     },
+    updatedAt: undefined,
+  },
+  {
+    archived: false,
+    createdAt: 2023-07-16T17:37:35.683Z,
+    id: "51",
+    properties: {
+      email: "bh@hubspot.com",
+    },
+    updatedAt: undefined,
+  },
+]
+`;
+
+snapshot[`global > FindMany Where email is 'fakeemail' >  1`] = `
+[
+  {
+    archived: false,
+    createdAt: 2023-07-16T17:37:35.426Z,
+    id: "1",
+    properties: {},
+    updatedAt: undefined,
+  },
+  {
+    archived: false,
+    createdAt: 2023-07-16T17:37:35.683Z,
+    id: "51",
+    properties: {},
+    updatedAt: undefined,
+  },
+]
+`;
+
+snapshot[`global > FindMany Where email is 'fakeemail' >  2`] = `
+[
+  {
+    archived: false,
+    createdAt: 2023-07-16T17:37:35.426Z,
+    id: "1",
+    properties: {},
+    updatedAt: undefined,
+  },
+  {
+    archived: false,
+    createdAt: 2023-07-16T17:37:35.683Z,
+    id: "51",
+    properties: {},
+    updatedAt: undefined,
+  },
+]
+`;
+
+snapshot[`global > FindMany Where email is 'fakeemail' >  3`] = `
+[
+  {
+    archived: false,
+    createdAt: 2023-07-16T17:37:35.426Z,
+    id: "1",
+    properties: {},
+    updatedAt: undefined,
+  },
+  {
+    archived: false,
+    createdAt: 2023-07-16T17:37:35.683Z,
+    id: "51",
+    properties: {},
+    updatedAt: undefined,
+  },
+]
+`;
+
+snapshot[`global > FindMany Where email is 'fakeemail' >  4`] = `
+[
+  {
+    archived: false,
+    createdAt: 2023-07-16T17:37:35.426Z,
+    id: "1",
+    properties: {},
+    updatedAt: undefined,
+  },
+  {
+    archived: false,
+    createdAt: 2023-07-16T17:37:35.683Z,
+    id: "51",
+    properties: {},
+    updatedAt: undefined,
+  },
+]
+`;
+
+snapshot[`global > FindMany Where email is 'fakeemail' >  5`] = `
+[
+  {
+    archived: false,
+    createdAt: 2023-07-16T17:37:35.426Z,
+    id: "1",
+    properties: {},
+    updatedAt: undefined,
+  },
+  {
+    archived: false,
+    createdAt: 2023-07-16T17:37:35.683Z,
+    id: "51",
+    properties: {},
+    updatedAt: undefined,
+  },
+]
+`;
+
+snapshot[`global > FindMany Where email is 'fakeemail' >  6`] = `
+[
+  {
+    archived: false,
+    createdAt: 2023-07-16T17:37:35.426Z,
+    id: "1",
+    properties: {},
+    updatedAt: undefined,
+  },
+  {
+    archived: false,
+    createdAt: 2023-07-16T17:37:35.683Z,
+    id: "51",
+    properties: {},
     updatedAt: undefined,
   },
 ]

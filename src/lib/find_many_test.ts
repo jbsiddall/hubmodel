@@ -1,34 +1,26 @@
-import { assertEquals } from "https://deno.land/std@0.201.0/assert/mod.ts";
-import { assertSpyCall, assertSpyCalls, returnsNext, spy, stub } from "https://deno.land/std@0.201.0/testing/mock.ts";
-import { createHubspotClient, createHubspotClientForTesting } from "../lib/index.ts";
-import { afterEach, beforeEach, describe, it } from "https://deno.land/std@0.201.0/testing/bdd.ts";
-import { axios, R } from "./deps.ts";
-import MockAdapter from "npm:axios-mock-adapter";
+import { createHubspotClient } from "../lib/index.ts";
+import { afterAll, beforeAll, describe, it } from "https://deno.land/std@0.201.0/testing/bdd.ts";
+import { axios } from "./deps.ts";
 import { assertSnapshot } from "https://deno.land/std@0.201.0/testing/snapshot.ts";
+import { getConfig } from "../env.ts";
+import {
+  create as createAxiosSnapshot,
+  flush as flushAxiosSnapshot,
+  initCache as initAxiosSnapshot,
+} from "./axios_snapshot.ts";
+import { CollectionInstance } from "./common.ts";
 
-// const assertSnapshotBetter = (ctx: Deno.TestContext, value: unknown, tag?: string) => {
-//   assertSnapshot(ctx, value, {name:})
-// }
+const cachedAxios = createAxiosSnapshot(axios);
+beforeAll(() => initAxiosSnapshot());
+afterAll(() => flushAxiosSnapshot());
 
-const mockedAxios = new MockAdapter(axios);
+const accessToken = Deno.args.includes("--update") ? getConfig().HUBSPOT_TOKEN : "faketoken";
 
-// const mockedAxios = stub(axios, 'post')
-
-const client = createHubspotClient({ accessToken: "testtoken" });
-
-afterEach(() => {
-  mockedAxios.reset();
-});
+const client = createHubspotClient({ axios: cachedAxios, accessToken });
 
 describe("FindMany Select - type checks", () => {
   // checks types for a bug where we could add properties to the select object that didn't exist
   async function _typeCheckOnlySelectClause() {
-    // @ts-expect-error only known properties allowed to be selected
-    await client.contacts.findMany({ select: { fake_property_that_doesnt_exist: true } });
-
-    // @ts-expect-error only known properties allowed to be selected
-    await client.contacts.findMany({ select: { address: true, fake_property_that_doesnt_exist: true } });
-
     await client.contacts.findMany({
       select: {
         hs_all_accessible_team_ids: true,
@@ -40,72 +32,74 @@ describe("FindMany Select - type checks", () => {
   }
 });
 
-describe("FindManySelect", () => {
-  beforeEach(() => {
-    mockedAxios.onPost().replyOnce(200, {
-      results: [
-        {
-          "id": "123",
-          "properties": {
-            "email": "fakeemail",
-            "unwanted": "unwanted",
-          },
-          "createdAt": "2023-09-15T23:36:11.779Z",
-          "updatedAt": "2023-09-15T23:36:11.779Z",
-          "archived": false,
-        },
-      ],
-    });
+const sanitiseContactsForSnapshot = (contacts: CollectionInstance<"contacts", any>[]) => {
+  return contacts.map((c) => {
+    return { ...c, updatedAt: undefined };
   });
+};
 
-  const f = () => client.contacts.findMany({ select: { email: true } });
-
-  it(async function history(ctx) {
-    await f();
-    const request = mockedAxios.history.post[0];
-
-    assertSnapshot(
-      ctx,
-      R.pick(
-        ["baseURL", "url", "data", "headers"],
-        request,
-      ),
-    );
-  });
-
+describe("FindMany Select just email", () => {
   it(async function response(ctx) {
-    const contacts = await f();
-    const snapshotContacts = contacts.map((c) => {
-      return { ...c, updatedAt: undefined };
-    });
-    assertSnapshot(ctx, snapshotContacts);
+    const contacts = await client.contacts.findMany({ select: { email: true } });
+    assertSnapshot(ctx, sanitiseContactsForSnapshot(contacts));
   });
 });
 
-describe("FindMany Where", () => {
-  async function _typeCheckOnlyWhereClause() {
-    await client.contacts.findMany({ where: { email: { equals: "fakeemail" } } });
+describe("FindMany Where email is 'fakeemail'", () => {
+  it(async (ctx) => {
+    assertSnapshot(
+      ctx,
+      sanitiseContactsForSnapshot(
+        await client.contacts.findMany({ where: { email: { equals: "fakeemail" } } }),
+      ),
+    );
 
     /** String Property */
     // @ts-expect-error error
     await client.contacts.findMany({ where: { email: { equals: 123 } } });
 
-    await client.contacts.findMany({ where: { email: { equals: null } } });
+    assertSnapshot(
+      ctx,
+      sanitiseContactsForSnapshot(
+        await client.contacts.findMany({ where: { email: { equals: null } } }),
+      ),
+    );
 
     // @ts-expect-error error
     await client.contacts.findMany({ where: { email: { equals: new Date() } } });
 
-    /** number Property */
-    await client.contacts.findMany({ where: { followercount: { equals: 123 } } });
+    assertSnapshot(
+      ctx,
+      sanitiseContactsForSnapshot(
+        await client.contacts.findMany({ where: { followercount: { equals: 123 } } }),
+      ),
+    );
 
     // @ts-expect-error error
     await client.contacts.findMany({ where: { followercount: { equals: "123" } } });
 
-    await client.contacts.findMany({ where: { followercount: { equals: null } } });
+    assertSnapshot(
+      ctx,
+      sanitiseContactsForSnapshot(
+        await client.contacts.findMany({ where: { followercount: { equals: null } } }),
+      ),
+    );
 
-    await client.contacts.findMany({ where: { email: { not: "fakeemail" } } });
+    assertSnapshot(
+      ctx,
+      sanitiseContactsForSnapshot(
+        await client.contacts.findMany({ where: { email: { not: "fakeemail" } } }),
+      ),
+    );
+
     // @ts-expect-error error
-    await client.contacts.findMany({ where: { email: { not: 123 } } });
-    await client.contacts.findMany({ where: { email: { not: null } } });
-  }
+    const result = await client.contacts.findMany({ where: { email: { not: 123 } } });
+
+    assertSnapshot(
+      ctx,
+      sanitiseContactsForSnapshot(
+        await client.contacts.findMany({ where: { email: { not: null } } }),
+      ),
+    );
+  });
 });

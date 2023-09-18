@@ -61,9 +61,7 @@ const findMany =
 
     const RawValidator: META["collectionProperties"][Name] = __META__.collectionProperties[collectionName];
     // TODO remove any from following line
-    const collectionValidator: typeof RawValidator = select === undefined
-      ? RawValidator
-      : (RawValidator.pick as any)(select);
+    const collectionValidator: typeof RawValidator = (RawValidator.pick as any)(select ?? []);
 
     const rows = results.map((row) => SimpleObjectValidator.parse(row)).map(
       (row) => ({

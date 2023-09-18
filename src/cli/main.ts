@@ -1,8 +1,7 @@
 import { fromFileUrl, join } from "https://deno.land/std@0.201.0/path/mod.ts";
-import { R, z } from "./deps.ts";
+import { axios, R, z } from "./deps.ts";
 import { Expression, expression, serialize, Statement } from "./code-generator.ts";
-import { createHubspotAxios, getObjectTypeProperties, PropertyDefinitionValidator } from "../rest.ts";
-import { getConfig } from "../env.ts";
+import { getObjectTypeProperties, PropertyDefinitionValidator } from "../rest.ts";
 
 const fileToWriteTo = join(
   fromFileUrl(import.meta.url),
@@ -17,10 +16,6 @@ const debugPath = join(
 );
 
 const hubspotObjectTypesToDownload = ["tickets", "contacts", "tasks"];
-
-export const axios = createHubspotAxios({
-  accessToken: getConfig().HUBSPOT_TOKEN,
-});
 
 const main = async () => {
   const statements: Statement[] = [

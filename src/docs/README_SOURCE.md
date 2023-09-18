@@ -144,6 +144,12 @@ original hubspot client. If you need to use an endpoint that this library doesn'
 using the hubspot client. In the long term, this library might want to support the endpoints so file a github
 ticket/discussion etc and we can discuss :)
 
+_Why when retrieving records for a collection using say the `findMany` does it require me to select the fields i want
+instead of just by default returning all fields?_
+
+Default faster requests because some collection can have a very large number of properties and the shape of the data
+doesn't change on you when someone adds a new property in hubspot.
+
 <!-- ROADMAP -->
 
 ## Roadmap
@@ -160,6 +166,8 @@ ticket/discussion etc and we can discuss :)
 - [ ] Create associations between hubspot objects
 - [ ] Update an object's fields
 - [ ] Update an object's associations
+- [ ] Runtime validation of arguments to `select`/`where`. eg detect at runtime if we did `.where({email: {equals: 5}})`
+      because email can never be a number 5.
 - [ ] support all property operators when searching https://developers.hubspot.com/docs/api/crm/search
 - [ ] ORM - ORM like functionality, defining your hubspot schema in code and then syncing it to hubspot directly just
       like you would for a database. Inspired by [https://www.prisma.io/](https://www.prisma.io/)
