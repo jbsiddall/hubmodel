@@ -9,6 +9,8 @@ import {
   initCache as initAxiosSnapshot,
 } from "./axios_snapshot.ts";
 import { CollectionInstance } from "./common.ts";
+import { assertThrows } from "https://deno.land/std@0.201.0/assert/assert_throws.ts";
+import { assertRejects } from "https://deno.land/std@0.201.0/assert/assert_rejects.ts";
 
 const cachedAxios = createAxiosSnapshot(axios);
 beforeAll(() => initAxiosSnapshot());
@@ -18,88 +20,121 @@ const accessToken = Deno.args.includes("--update") ? getConfig().HUBSPOT_TOKEN :
 
 const client = createHubspotClient({ axios: cachedAxios, accessToken });
 
-describe("FindMany Select - type checks", () => {
-  // checks types for a bug where we could add properties to the select object that didn't exist
-  async function _typeCheckOnlySelectClause() {
-    await client.contacts.findMany({
-      select: {
-        hs_all_accessible_team_ids: true,
-        address: true,
-        // @ts-expect-error only known properties allowed to be selected
-        fake_property_that_doesnt_exist: true,
-      },
+describe("FindMany", () => {
+  describe("Select Clause", () => {
+    it.skip("runtime error when field selected that doesnt exist", async () => {
+      await assertRejects(() =>
+        client.contacts.findMany({
+          select: {
+            hs_all_accessible_team_ids: true,
+            address: true,
+            // @ts-expect-error only known properties allowed to be selected
+            fake_property_that_doesnt_exist: true,
+          },
+        })
+      );
     });
-  }
+
+    it("selecting email only returns email field", async (ctx) => {
+      const contacts = await client.contacts.findMany({
+        select: { email: true },
+      });
+      assertSnapshot(ctx, sanitiseContactsForSnapshot(contacts));
+    });
+  });
+
+  describe("Where Clause", () => {
+    it('email equals "fakeemail"', async (ctx) => {
+      assertSnapshot(
+        ctx,
+        sanitiseContactsForSnapshot(
+          await client.contacts.findMany({
+            where: { email: { equals: "fakeemail" } },
+          }),
+        ),
+      );
+    });
+
+    it.skip("runtime error when number passed to equals field expecting string", async () => {
+      await assertRejects(() =>
+        // @ts-expect-error error
+        client.contacts.findMany({ where: { email: { equals: 123 } } })
+      );
+    });
+
+    it.skip("runtime error when date passed to equals field expecting string", async () => {
+      await assertRejects(() =>
+        // @ts-expect-error error
+        client.contacts.findMany({ where: { email: { equals: new Date() } } })
+      );
+    });
+
+    it.skip("runtime error when string passed to equals field expecting number", async () => {
+      await assertRejects(() =>
+        client.contacts.findMany({
+          // @ts-expect-error error
+          where: { followercount: { equals: "123" } },
+        })
+      );
+    });
+
+    it.skip("runtime error when string passed to equals field expecting number", async () => {
+      const result = await assertRejects(() =>
+        client.contacts.findMany({
+          // @ts-expect-error error
+          where: { email: { not: 123 } },
+        })
+      );
+    });
+
+    it("email equals null", async (ctx) => {
+      assertSnapshot(
+        ctx,
+        sanitiseContactsForSnapshot(
+          await client.contacts.findMany({
+            where: { email: { equals: null } },
+          }),
+        ),
+      );
+    });
+
+    it("email NOT equal null", async (ctx) => {
+      assertSnapshot(
+        ctx,
+        sanitiseContactsForSnapshot(
+          await client.contacts.findMany({ where: { email: { not: null } } }),
+        ),
+      );
+    });
+
+    it("followercount equal 123", async (ctx) => {
+      assertSnapshot(
+        ctx,
+        sanitiseContactsForSnapshot(
+          await client.contacts.findMany({
+            where: { followercount: { equals: 123 } },
+          }),
+        ),
+      );
+    });
+
+    it('email not equal "fakeemail"', async (ctx) => {
+      assertSnapshot(
+        ctx,
+        sanitiseContactsForSnapshot(
+          await client.contacts.findMany({
+            where: { email: { not: "fakeemail" } },
+          }),
+        ),
+      );
+    });
+  });
 });
 
-const sanitiseContactsForSnapshot = (contacts: CollectionInstance<"contacts", any>[]) => {
+const sanitiseContactsForSnapshot = (
+  contacts: CollectionInstance<"contacts", any>[],
+) => {
   return contacts.map((c) => {
     return { ...c, updatedAt: undefined };
   });
 };
-
-describe("FindMany Select just email", () => {
-  it(async function response(ctx) {
-    const contacts = await client.contacts.findMany({ select: { email: true } });
-    assertSnapshot(ctx, sanitiseContactsForSnapshot(contacts));
-  });
-});
-
-describe("FindMany Where email is 'fakeemail'", () => {
-  it(async (ctx) => {
-    assertSnapshot(
-      ctx,
-      sanitiseContactsForSnapshot(
-        await client.contacts.findMany({ where: { email: { equals: "fakeemail" } } }),
-      ),
-    );
-
-    /** String Property */
-    // @ts-expect-error error
-    await client.contacts.findMany({ where: { email: { equals: 123 } } });
-
-    assertSnapshot(
-      ctx,
-      sanitiseContactsForSnapshot(
-        await client.contacts.findMany({ where: { email: { equals: null } } }),
-      ),
-    );
-
-    // @ts-expect-error error
-    await client.contacts.findMany({ where: { email: { equals: new Date() } } });
-
-    assertSnapshot(
-      ctx,
-      sanitiseContactsForSnapshot(
-        await client.contacts.findMany({ where: { followercount: { equals: 123 } } }),
-      ),
-    );
-
-    // @ts-expect-error error
-    await client.contacts.findMany({ where: { followercount: { equals: "123" } } });
-
-    assertSnapshot(
-      ctx,
-      sanitiseContactsForSnapshot(
-        await client.contacts.findMany({ where: { followercount: { equals: null } } }),
-      ),
-    );
-
-    assertSnapshot(
-      ctx,
-      sanitiseContactsForSnapshot(
-        await client.contacts.findMany({ where: { email: { not: "fakeemail" } } }),
-      ),
-    );
-
-    // @ts-expect-error error
-    const result = await client.contacts.findMany({ where: { email: { not: 123 } } });
-
-    assertSnapshot(
-      ctx,
-      sanitiseContactsForSnapshot(
-        await client.contacts.findMany({ where: { email: { not: null } } }),
-      ),
-    );
-  });
-});

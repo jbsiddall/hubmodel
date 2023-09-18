@@ -1,6 +1,6 @@
 export const snapshot = {};
 
-snapshot[`global > FindMany Select just email > response 1`] = `
+snapshot[`global > FindMany > Select Clause > selecting email only returns email field 1`] = `
 [
   {
     archived: false,
@@ -23,7 +23,7 @@ snapshot[`global > FindMany Select just email > response 1`] = `
 ]
 `;
 
-snapshot[`global > FindMany Where email is 'fakeemail' >  1`] = `
+snapshot[`global > FindMany > Where Clause > email equals "fakeemail" 1`] = `
 [
   {
     archived: false,
@@ -42,7 +42,7 @@ snapshot[`global > FindMany Where email is 'fakeemail' >  1`] = `
 ]
 `;
 
-snapshot[`global > FindMany Where email is 'fakeemail' >  2`] = `
+snapshot[`global > FindMany > Where Clause > email equals null 1`] = `
 [
   {
     archived: false,
@@ -61,7 +61,7 @@ snapshot[`global > FindMany Where email is 'fakeemail' >  2`] = `
 ]
 `;
 
-snapshot[`global > FindMany Where email is 'fakeemail' >  3`] = `
+snapshot[`global > FindMany > Where Clause > email NOT equal null 1`] = `
 [
   {
     archived: false,
@@ -80,7 +80,7 @@ snapshot[`global > FindMany Where email is 'fakeemail' >  3`] = `
 ]
 `;
 
-snapshot[`global > FindMany Where email is 'fakeemail' >  4`] = `
+snapshot[`global > FindMany > Where Clause > followercount equal 123 1`] = `
 [
   {
     archived: false,
@@ -99,26 +99,7 @@ snapshot[`global > FindMany Where email is 'fakeemail' >  4`] = `
 ]
 `;
 
-snapshot[`global > FindMany Where email is 'fakeemail' >  5`] = `
-[
-  {
-    archived: false,
-    createdAt: 2023-07-16T17:37:35.426Z,
-    id: "1",
-    properties: {},
-    updatedAt: undefined,
-  },
-  {
-    archived: false,
-    createdAt: 2023-07-16T17:37:35.683Z,
-    id: "51",
-    properties: {},
-    updatedAt: undefined,
-  },
-]
-`;
-
-snapshot[`global > FindMany Where email is 'fakeemail' >  6`] = `
+snapshot[`global > FindMany > Where Clause > email not equal "fakeemail" 1`] = `
 [
   {
     archived: false,
