@@ -9,8 +9,8 @@ import {
   initCache as initAxiosSnapshot,
 } from "./axios_snapshot.ts";
 import { CollectionInstance } from "./common.ts";
-import { assertThrows } from "https://deno.land/std@0.201.0/assert/assert_throws.ts";
 import { assertRejects } from "https://deno.land/std@0.201.0/assert/assert_rejects.ts";
+import { assertEquals } from "https://deno.land/std@0.201.0/assert/assert_equals.ts";
 
 const cachedAxios = createAxiosSnapshot(axios);
 beforeAll(() => initAxiosSnapshot());
@@ -45,14 +45,13 @@ describe("FindMany", () => {
 
   describe("Where Clause", () => {
     it('email equals "fakeemail"', async (ctx) => {
-      assertSnapshot(
-        ctx,
-        sanitiseContactsForSnapshot(
-          await client.contacts.findMany({
-            where: { email: { equals: "fakeemail" } },
-          }),
-        ),
+      const contacts = sanitiseContactsForSnapshot(
+        await client.contacts.findMany({
+          where: { email: { equals: "fakeemail" } },
+        }),
       );
+      assertSnapshot(ctx, contacts);
+      assertEquals(contacts, []);
     });
 
     it.skip("runtime error when number passed to equals field expecting string", async () => {
@@ -84,6 +83,13 @@ describe("FindMany", () => {
           // @ts-expect-error error
           where: { email: { not: 123 } },
         })
+      );
+    });
+
+    it("equal or not mutually exclusive", async () => {
+      await assertRejects(() =>
+        // @ts-expect-error error
+        client.contacts.findMany({ where: { email: { equals: "fakeemail", not: "fakemeail" } } })
       );
     });
 

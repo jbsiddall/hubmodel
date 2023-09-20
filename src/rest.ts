@@ -21,11 +21,20 @@ interface SearchObjectsArgs {
   axios: AxiosInstance;
   objectType: string;
   properties?: string[];
-  filterGroups?: unknown[];
+  filterGroups?: FilterGroup[];
   after?: number;
   sorts?: string[];
   limit?: number;
 }
+
+export interface FilterGroup {
+  filters: Filter[];
+}
+
+export type Filter = { propertyName: string; operator: "EQ" | "NEQ"; value: string } | {
+  propertyName: string;
+  operator: "HAS_PROPERTY" | "NOT_HAS_PROPERTY";
+};
 
 export const searchObjects = async (
   { axios, objectType, properties, filterGroups, after, sorts, limit }: SearchObjectsArgs,

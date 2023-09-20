@@ -7,9 +7,10 @@ import {
   NoExtraKeys,
   SelectArg,
   WhereArg,
+  ZOD_COLLECTIONS,
 } from "./common.ts";
-import { z } from "./deps.ts";
-import { searchObjects } from "../rest.ts";
+import { R, z } from "./deps.ts";
+import { Filter, FilterGroup, searchObjects } from "../rest.ts";
 import { __META__ } from "../generated.ts";
 
 interface FindManyArgsBase<Name extends COLLECTION_NAMES> {
@@ -42,19 +43,33 @@ type Helper<Name extends COLLECTION_NAMES, T extends undefined | SelectArg<Name>
 const findMany =
   <Name extends COLLECTION_NAMES>({ collectionName, client }: CollHelperInternalArgs<Name>) =>
   async <const Arg extends FindManyArgsBase<Name>>(
-    { select, take, skip }: NoExtraKeys<FindManyArgsBase<Name>, Arg>,
+    { select, where, take, skip }: NoExtraKeys<FindManyArgsBase<Name>, Arg>,
   ): Promise<CollectionInstance<Name, Helper<Name, Arg["select"]>>[]> => {
     if (take !== undefined && take < 0) {
       throw new Error(`take must be positive`);
     }
+
     if (skip !== undefined && skip < 0) {
       throw new Error(`skip must be positive`);
     }
+
+    const filterGroups = whereClauseToFilterGroups({ collectionName, where });
 
     const results = await searchObjects({
       axios: client,
       objectType: collectionName,
       properties: Object.keys(select ?? {}),
+      filterGroups: [
+        {
+          filters: [
+            {
+              propertyName: "email",
+              operator: "EQ",
+              value: "WOW",
+            },
+          ],
+        },
+      ],
       after: skip as any as number,
       limit: take as any as number,
     });
@@ -71,6 +86,78 @@ const findMany =
     );
     return rows as any;
   };
+
+interface WhereClauseToFilterGroupsArgs<Name extends COLLECTION_NAMES> {
+  collectionName: Name;
+  where: WhereArg<Name> | undefined;
+}
+
+const whereClauseToFilterGroups = <Name extends COLLECTION_NAMES, Arg extends WhereClauseToFilterGroupsArgs<Name>>(
+  { collectionName, where }: Arg,
+): FilterGroup[] => {
+  if (!where) {
+    return [];
+  }
+
+  const helper = <Prop extends keyof Arg["where"]>(field: Prop): Filter[] => {
+    const clause = where[field];
+
+    if (!clause) {
+      throw new Error(`where clause for property ${collectionName}.${String(field)} not well defined`);
+    }
+
+    if (Object.keys(clause).length !== 1) {
+      throw new Error(
+        `where clause for ${collectionName}.${String(field)} must have exactly one condition eg "equals"`,
+      );
+    }
+
+    const x = clause;
+
+    if (clause.equals) {
+      if (clause.equals === null) {
+        return [
+          { propertyName: field, operator: "NOT_HAS_PROPERTY" },
+        ];
+      } else {
+        return [
+          { propertyName: field, operator: "EQ", value: `${clause.equals}` },
+        ];
+      }
+    }
+    if (clause.not) {
+      if (clause.not === null) {
+        return [
+          { propertyName: field, operator: "HAS_PROPERTY" },
+        ];
+      }
+      return [
+        { propertyName: field, operator: "NEQ", value: `${clause.equals}` },
+      ];
+    }
+
+    return [];
+  };
+
+  for (const bloop: Arg["where"][string] in where) {
+    const clause = where[bloop];
+    if (clause === null || clause === undefined) {
+      throw new Error();
+    }
+    if (typeof bloop === "symbol" || typeof bloop === "number") {
+      throw new Error();
+    }
+    helper(bloop);
+  }
+
+  const v = R.keys(where);
+
+  return [
+    {
+      filters: [...R.flatten(R.values(R.mapObjIndexed(helper as any, where)))],
+    },
+  ];
+};
 
 export const collectionHelpers = <Name extends COLLECTION_NAMES>(
   internalArgs: CollHelperInternalArgs<Name>,

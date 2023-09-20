@@ -23,25 +23,18 @@ export type SelectArg<Name extends COLLECTION_NAMES> = {
 };
 
 export type WhereArg<Name extends COLLECTION_NAMES> = {
-  [K in keyof ZOD_COLLECTIONS[Name]]?: FieldWhereArg<ZOD_COLLECTIONS[Name][K]>;
+  [K in keyof ZOD_COLLECTIONS[Name]]?: Partial<FieldWhereArg<ZOD_COLLECTIONS[Name][K]>>;
 };
 
-export type FieldWhereArg<FieldType extends string | null | number | Date | boolean> = Partial<
-  { equals: FieldType | null; not: FieldType | null }
->;
-// & (
-//   FieldType extends string ? {equals: string | null} : never |
-//   FieldType extends number ? {equals: number | null} : never |
-//   FieldType extends Date ? {equals: Date | null} : never |
-//   FieldType extends boolean ? {equals: boolean | null} : never
-// )
+type WhereFieldType = string | null | number | Date | boolean;
+export type FieldWhereArg<FieldType extends WhereFieldType> = XOR<WhereEquals<FieldType>, WhereNot<FieldType>>;
+type WhereEquals<FieldType extends WhereFieldType> = { equals: FieldType | null };
+type WhereNot<FieldType extends WhereFieldType> = { not: FieldType | null };
 
-type F = { createdate: string; name: string };
-type FF = Pick<F, "name" | "createdate">;
+type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
+type XOR<T, U> = (T | U) extends object ? (Without<T, U> & U) | (Without<U, T> & T) : T | U;
 
-export type DefaultSelectArg<Name extends COLLECTION_NAMES> = {
-  // [K in keyof ZOD_COLLECTIONS[Name] as K ]: true;
-};
+export type DefaultSelectArg<Name extends COLLECTION_NAMES> = Record<string, never>;
 
 export interface CollectionInstance<
   Name extends COLLECTION_NAMES,
