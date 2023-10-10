@@ -39,6 +39,7 @@ describe("FindMany", () => {
       const contacts = await client.contacts.findMany({
         select: { email: true },
       });
+      console.log("contacts are", contacts);
       assertSnapshot(ctx, sanitiseContactsForSnapshot(contacts));
     });
   });
@@ -52,6 +53,29 @@ describe("FindMany", () => {
       );
       assertSnapshot(ctx, contacts);
       assertEquals(contacts, []);
+    });
+
+    it("email equals 1 specific contact email", async (ctx) => {
+      const contacts = sanitiseContactsForSnapshot(
+        await client.contacts.findMany({
+          select: { email: true },
+          where: { email: { equals: "bh@hubspot.com" } },
+        }),
+      );
+      assertSnapshot(ctx, contacts);
+      assertEquals(contacts.length, 1);
+      assertEquals(contacts[0].properties.email, "bh@hubspot.com");
+    });
+    it("email NOT equal to 1 specific contact email", async (ctx) => {
+      const contacts = sanitiseContactsForSnapshot(
+        await client.contacts.findMany({
+          select: { email: true },
+          where: { email: { not: "bh@hubspot.com" } },
+        }),
+      );
+      assertSnapshot(ctx, contacts);
+      assertEquals(contacts.length, 1);
+      assertEquals(contacts[0].properties.email, "emailmaria@hubspot.com");
     });
 
     it.skip("runtime error when number passed to equals field expecting string", async () => {
@@ -86,11 +110,20 @@ describe("FindMany", () => {
       );
     });
 
-    it("equal or not mutually exclusive", async () => {
-      await assertRejects(() =>
-        // @ts-expect-error error
-        client.contacts.findMany({ where: { email: { equals: "fakeemail", not: "fakemeail" } } })
-      );
+    it("'equal' and 'not' of same value always return empty", async () => {
+      const contacts = await client.contacts.findMany({
+        where: { email: { equals: "emailmaria@hubspot.com", not: "emailmaria@hubspot.com" } },
+      });
+      assertEquals(contacts, []);
+    });
+
+    it("'equal' and 'not' acts like just 'equals' when 'not' clause is unsatisified", async () => {
+      const contacts = await client.contacts.findMany({
+        select: { email: true },
+        where: { email: { equals: "emailmaria@hubspot.com", not: "fakeemail" } },
+      });
+      assertEquals(contacts.length, 1);
+      assertEquals(contacts[0].properties.email, "fakeemail");
     });
 
     it("email equals null", async (ctx) => {

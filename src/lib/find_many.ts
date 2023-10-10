@@ -40,10 +40,11 @@ const SimpleObjectValidator = z.object({
 type Helper<Name extends COLLECTION_NAMES, T extends undefined | SelectArg<Name>> = T extends undefined
   ? DefaultSelectArg<Name>
   : Exclude<T, undefined>;
+
 const findMany =
   <Name extends COLLECTION_NAMES>({ collectionName, client }: CollHelperInternalArgs<Name>) =>
   async <const Arg extends FindManyArgsBase<Name>>(
-    { select, where, take, skip }: NoExtraKeys<FindManyArgsBase<Name>, Arg>,
+    { select, where, take, skip }: Arg,
   ): Promise<CollectionInstance<Name, Helper<Name, Arg["select"]>>[]> => {
     if (take !== undefined && take < 0) {
       throw new Error(`take must be positive`);
@@ -53,23 +54,13 @@ const findMany =
       throw new Error(`skip must be positive`);
     }
 
-    const filterGroups = whereClauseToFilterGroups({ collectionName, where });
+    const filterGroups = whereClauseToFilterGroups({ where });
 
     const results = await searchObjects({
       axios: client,
       objectType: collectionName,
       properties: Object.keys(select ?? {}),
-      filterGroups: [
-        {
-          filters: [
-            {
-              propertyName: "email",
-              operator: "EQ",
-              value: "WOW",
-            },
-          ],
-        },
-      ],
+      filterGroups,
       after: skip as any as number,
       limit: take as any as number,
     });
@@ -88,75 +79,64 @@ const findMany =
   };
 
 interface WhereClauseToFilterGroupsArgs<Name extends COLLECTION_NAMES> {
-  collectionName: Name;
   where: WhereArg<Name> | undefined;
 }
 
 const whereClauseToFilterGroups = <Name extends COLLECTION_NAMES, Arg extends WhereClauseToFilterGroupsArgs<Name>>(
-  { collectionName, where }: Arg,
+  { where }: Arg,
 ): FilterGroup[] => {
-  if (!where) {
-    return [];
-  }
-
-  const helper = <Prop extends keyof Arg["where"]>(field: Prop): Filter[] => {
-    const clause = where[field];
-
-    if (!clause) {
-      throw new Error(`where clause for property ${collectionName}.${String(field)} not well defined`);
-    }
-
-    if (Object.keys(clause).length !== 1) {
-      throw new Error(
-        `where clause for ${collectionName}.${String(field)} must have exactly one condition eg "equals"`,
-      );
-    }
-
-    const x = clause;
-
-    if (clause.equals) {
-      if (clause.equals === null) {
-        return [
-          { propertyName: field, operator: "NOT_HAS_PROPERTY" },
-        ];
-      } else {
-        return [
-          { propertyName: field, operator: "EQ", value: `${clause.equals}` },
-        ];
+  const keys = where === undefined ? [] : R.keys(where);
+  const filters: Filter[] = keys.reduce(
+    (partialResults, key) => {
+      if (typeof key === "symbol" || typeof key === "number") {
+        throw new Error(`where clause key '${String(key)}' must be of type string`);
       }
-    }
-    if (clause.not) {
-      if (clause.not === null) {
-        return [
-          { propertyName: field, operator: "HAS_PROPERTY" },
-        ];
+
+      if (!where) {
+        return partialResults;
       }
-      return [
-        { propertyName: field, operator: "NEQ", value: `${clause.equals}` },
-      ];
-    }
+      const filter = where[key];
 
-    return [];
-  };
+      if (!filter) {
+        return partialResults;
+      }
 
-  for (const bloop: Arg["where"][string] in where) {
-    const clause = where[bloop];
-    if (clause === null || clause === undefined) {
-      throw new Error();
-    }
-    if (typeof bloop === "symbol" || typeof bloop === "number") {
-      throw new Error();
-    }
-    helper(bloop);
-  }
+      const newPartial = [...partialResults];
 
-  const v = R.keys(where);
+      if ("equals" in filter) {
+        if (filter.equals === null) {
+          newPartial.push(
+            { propertyName: key, operator: "NOT_HAS_PROPERTY" },
+          );
+        } else {
+          newPartial.push(
+            { propertyName: key, operator: "EQ", value: `${String(filter.equals)}` },
+          );
+        }
+      }
 
-  return [
-    {
-      filters: [...R.flatten(R.values(R.mapObjIndexed(helper as any, where)))],
+      if ("not" in filter) {
+        if (filter.not === null) {
+          newPartial.push({ propertyName: key, operator: "HAS_PROPERTY" });
+        } else {
+          newPartial.push({
+            propertyName: key,
+            operator: "NEQ",
+            value: `${String(filter.not)}`,
+          });
+        }
+      }
+
+      return newPartial;
     },
-  ];
+    [] as Filter[],
+  );
+
+  if (filters.length === 0) {
+    return [];
+  }
+
+  return [{ filters }];
 };
 
 export const collectionHelpers = <Name extends COLLECTION_NAMES>(

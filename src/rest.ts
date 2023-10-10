@@ -21,10 +21,10 @@ interface SearchObjectsArgs {
   axios: AxiosInstance;
   objectType: string;
   properties?: string[];
-  filterGroups?: FilterGroup[];
-  after?: number;
+  filterGroups?: FilterGroup[] | undefined;
+  after?: number | undefined;
   sorts?: string[];
-  limit?: number;
+  limit?: number | undefined;
 }
 
 export interface FilterGroup {
@@ -39,11 +39,13 @@ export type Filter = { propertyName: string; operator: "EQ" | "NEQ"; value: stri
 export const searchObjects = async (
   { axios, objectType, properties, filterGroups, after, sorts, limit }: SearchObjectsArgs,
 ) => {
+  const filterGroupsRestParam = (filterGroups ?? []).flatMap((fg) => fg.filters.length === 0 ? [] : [fg]);
+
   const response = await axios.post(
     `/crm/v3/objects/${objectType}/search`,
     {
       properties,
-      filterGroups,
+      filterGroups: filterGroupsRestParam.length === 0 ? undefined : filterGroupsRestParam,
       after,
       sorts,
       limit,

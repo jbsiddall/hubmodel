@@ -14,7 +14,7 @@ export type ZOD_COLLECTIONS = {
  * however because we have a type that extends this, then the type can have extra keys and still technically extend it so there's
  * no errors. we want errors when extra keys are added that there's not a property for.
  */
-export type NoExtraKeys<Super extends object, Sub extends object> = {
+export type NoExtraKeys<Super extends object, Sub extends Super> = {
   [K in keyof Sub as K extends keyof Super ? K : never]: Sub[K];
 };
 
@@ -27,12 +27,10 @@ export type WhereArg<Name extends COLLECTION_NAMES> = {
 };
 
 type WhereFieldType = string | null | number | Date | boolean;
-export type FieldWhereArg<FieldType extends WhereFieldType> = XOR<WhereEquals<FieldType>, WhereNot<FieldType>>;
-type WhereEquals<FieldType extends WhereFieldType> = { equals: FieldType | null };
-type WhereNot<FieldType extends WhereFieldType> = { not: FieldType | null };
-
-type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
-type XOR<T, U> = (T | U) extends object ? (Without<T, U> & U) | (Without<U, T> & T) : T | U;
+export interface FieldWhereArg<FieldType extends WhereFieldType> {
+  equals?: FieldType | null;
+  not?: FieldType | null;
+}
 
 export type DefaultSelectArg<Name extends COLLECTION_NAMES> = Record<string, never>;
 
