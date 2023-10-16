@@ -1,33 +1,30 @@
 import {
-  COLLECTION_NAMES,
   CollectionInstance,
+  CollectionName,
   CollHelperInternalArgs,
   DefaultSelectArg,
-  META,
+  GeneratedCollection,
+  GeneratedHubspotSchema,
   NoExtraKeys,
-  SelectArg,
-  WhereArg,
-  ZOD_COLLECTIONS,
 } from "./common.ts";
 import { R, z } from "./deps.ts";
 import { Filter, FilterGroup, searchObjects } from "../rest.ts";
-import { __META__ } from "../generated.ts";
 
-interface FindManyArgsBase<Name extends COLLECTION_NAMES> {
-  select?: SelectArg<Name>;
-  where?: WhereArg<Name>;
+interface FindManyArgsBase<Col extends GeneratedCollection> {
+  select?: z.infer<Col["SelectArgValidator"]>;
+  where?: z.infer<Col["WhereArgValidator"]>;
   take?: number;
   skip?: number;
 }
 
-type ValidateFindManyArgs<Args extends FindManyArgsBase<COLLECTION_NAMES>> = Args extends FindManyArgsBase<infer Name>
-  ? {
-    select?: Args["select"] extends (infer S extends SelectArg<Name>) ? NoExtraKeys<SelectArg<Name>, S> : "damm";
-    where?: Args["where"] extends (infer S extends WhereArg<Name>) ? NoExtraKeys<WhereArg<Name>, S> : undefined;
-    take?: number;
-    skip?: number;
-  }
-  : never;
+// type ValidateFindManyArgs<Args extends FindManyArgsBase<COLLECTION_NAMES>> = Args extends FindManyArgsBase<infer Name>
+//   ? {
+//     select?: Args["select"] extends (infer S extends SelectArg<Name>) ? NoExtraKeys<SelectArg<Name>, S> : "damm";
+//     where?: Args["where"] extends (infer S extends WhereArg<Name>) ? NoExtraKeys<WhereArg<Name>, S> : undefined;
+//     take?: number;
+//     skip?: number;
+//   }
+//   : never;
 
 const SimpleObjectValidator = z.object({
   id: z.string(),
@@ -37,46 +34,43 @@ const SimpleObjectValidator = z.object({
   archived: z.boolean(),
 });
 
-type Helper<Name extends COLLECTION_NAMES, T extends undefined | SelectArg<Name>> = T extends undefined
-  ? DefaultSelectArg<Name>
-  : Exclude<T, undefined>;
+const findMany = <Schema extends GeneratedHubspotSchema, Name extends CollectionName<Schema>>(
+  { collectionName, client }: CollHelperInternalArgs<Schema, Name>,
+) =>
+async <const Arg extends FindManyArgsBase<Schema["collections"][Name]>>(
+  { select, where, take, skip }: Arg,
+): Promise<CollectionInstance<Schema["collections"][Name], keyof Arg["select"]>[]> => {
+  if (take !== undefined && take < 0) {
+    throw new Error(`take must be positive`);
+  }
 
-const findMany =
-  <Name extends COLLECTION_NAMES>({ collectionName, client }: CollHelperInternalArgs<Name>) =>
-  async <const Arg extends FindManyArgsBase<Name>>(
-    { select, where, take, skip }: Arg,
-  ): Promise<CollectionInstance<Name, Helper<Name, Arg["select"]>>[]> => {
-    if (take !== undefined && take < 0) {
-      throw new Error(`take must be positive`);
-    }
+  if (skip !== undefined && skip < 0) {
+    throw new Error(`skip must be positive`);
+  }
 
-    if (skip !== undefined && skip < 0) {
-      throw new Error(`skip must be positive`);
-    }
+  const filterGroups = whereClauseToFilterGroups({ where });
 
-    const filterGroups = whereClauseToFilterGroups({ where });
+  const results = await searchObjects({
+    axios: client,
+    objectType: collectionName,
+    properties: Object.keys(select ?? {}),
+    filterGroups,
+    after: skip as any as number,
+    limit: take as any as number,
+  });
 
-    const results = await searchObjects({
-      axios: client,
-      objectType: collectionName,
-      properties: Object.keys(select ?? {}),
-      filterGroups,
-      after: skip as any as number,
-      limit: take as any as number,
-    });
+  const RawValidator: META["collectionProperties"][Name] = __META__.collectionProperties[collectionName];
+  // TODO remove any from following line
+  const collectionValidator: typeof RawValidator = (RawValidator.pick as any)(select ?? []);
 
-    const RawValidator: META["collectionProperties"][Name] = __META__.collectionProperties[collectionName];
-    // TODO remove any from following line
-    const collectionValidator: typeof RawValidator = (RawValidator.pick as any)(select ?? []);
-
-    const rows = results.map((row) => SimpleObjectValidator.parse(row)).map(
-      (row) => ({
-        ...row,
-        properties: collectionValidator.parse(row.properties),
-      }),
-    );
-    return rows as any;
-  };
+  const rows = results.map((row) => SimpleObjectValidator.parse(row)).map(
+    (row) => ({
+      ...row,
+      properties: collectionValidator.parse(row.properties),
+    }),
+  );
+  return rows as any;
+};
 
 interface WhereClauseToFilterGroupsArgs<Name extends COLLECTION_NAMES> {
   where: WhereArg<Name> | undefined;
@@ -95,6 +89,7 @@ const whereClauseToFilterGroups = <Name extends COLLECTION_NAMES, Arg extends Wh
       if (!where) {
         return partialResults;
       }
+
       const filter = where[key];
 
       if (!filter) {
@@ -139,8 +134,8 @@ const whereClauseToFilterGroups = <Name extends COLLECTION_NAMES, Arg extends Wh
   return [{ filters }];
 };
 
-export const collectionHelpers = <Name extends COLLECTION_NAMES>(
-  internalArgs: CollHelperInternalArgs<Name>,
+export const collectionHelpers = <Schema extends GeneratedHubspotSchema, Name extends CollectionName<Schema>>(
+  internalArgs: CollHelperInternalArgs<Schema, Name>,
 ) => ({
   findMany: findMany(internalArgs),
 });

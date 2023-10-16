@@ -1,11 +1,4 @@
-import { __META__ } from "../generated.ts";
 import { AxiosInstance, z } from "./deps.ts";
-
-export type META = typeof __META__;
-export type COLLECTION_NAMES = keyof META["collectionProperties"];
-export type ZOD_COLLECTIONS = {
-  [K in COLLECTION_NAMES]: z.infer<META["collectionProperties"][K]>;
-};
 
 /**
  * ensures that a sub type doesn't have any extra keys not in the superclass
@@ -18,13 +11,13 @@ export type NoExtraKeys<Super extends object, Sub extends Super> = {
   [K in keyof Sub as K extends keyof Super ? K : never]: Sub[K];
 };
 
-export type SelectArg<Name extends COLLECTION_NAMES> = {
-  [K in keyof ZOD_COLLECTIONS[Name]]?: true;
-};
+// export type SelectArg<Name extends COLLECTION_NAMES> = {
+//   [K in keyof ZOD_COLLECTIONS[Name]]?: true;
+// };
 
-export type WhereArg<Name extends COLLECTION_NAMES> = {
-  [K in keyof ZOD_COLLECTIONS[Name]]?: Partial<FieldWhereArg<ZOD_COLLECTIONS[Name][K]>>;
-};
+// export type WhereArg<Name extends COLLECTION_NAMES> = {
+//   [K in keyof ZOD_COLLECTIONS[Name]]?: Partial<FieldWhereArg<ZOD_COLLECTIONS[Name][K]>>;
+// };
 
 type WhereFieldType = string | null | number | Date | boolean;
 export interface FieldWhereArg<FieldType extends WhereFieldType> {
@@ -35,15 +28,11 @@ export interface FieldWhereArg<FieldType extends WhereFieldType> {
 export type DefaultSelectArg<Name extends COLLECTION_NAMES> = Record<string, never>;
 
 export interface CollectionInstance<
-  Name extends COLLECTION_NAMES,
-  Properties extends SelectArg<Name>,
+  Col extends GeneratedCollection,
+  Properties extends keyof z.infer<Col["InstanceValidator"]>,
 > {
   id: string;
-  properties: {
-    [
-      K in keyof ZOD_COLLECTIONS[Name] as Properties[K] extends true ? K : never
-    ]: ZOD_COLLECTIONS[Name][K];
-  };
+  properties: Pick<Col["InstanceValidator"], Properties>;
   createdAt: Date;
   updatedAt: Date;
   archived: boolean;
@@ -61,7 +50,22 @@ export interface CollectionInstance<
 //     findMany: FindMany<Name>
 // }
 
-export interface CollHelperInternalArgs<Name extends COLLECTION_NAMES> {
+export type CollectionName<Schema extends GeneratedHubspotSchema> = keyof Schema["collections"] & string;
+
+export interface CollHelperInternalArgs<Schema extends GeneratedHubspotSchema, Name extends CollectionName<Schema>> {
   collectionName: Name;
   client: AxiosInstance;
+  schema: Schema;
 }
+
+export interface GeneratedCollection {
+  SelectArgValidator: z.ZodType;
+  WhereArgValidator: z.ZodType;
+  InstanceValidator: z.ZodType;
+}
+
+export interface GeneratedHubspotSchema {
+  collections: Record<string, GeneratedCollection>;
+}
+
+export const verifySchema = <const S extends GeneratedHubspotSchema>(schema: S): S => schema;

@@ -1,20 +1,19 @@
-import { COLLECTION_NAMES, CollHelperInternalArgs, ZOD_COLLECTIONS } from "./common.ts";
-import { __META__ } from "../generated.ts";
+import { CollectionName, CollHelperInternalArgs, GeneratedCollection, GeneratedHubspotSchema } from "./common.ts";
 
-export const collectionHelpers = <Name extends COLLECTION_NAMES>(
-  internalArgs: CollHelperInternalArgs<Name>,
+export const collectionHelpers = <Schema extends GeneratedHubspotSchema, Name extends CollectionName<Schema>>(
+  internalArgs: CollHelperInternalArgs<Schema, Name>,
 ) => ({
-  create(args: CreateArgs<Name>) {
+  create(args: CreateArgs<Schema["collections"][Name]>) {
     return create(internalArgs, args);
   },
 });
 
-type CreateArgs<Name extends COLLECTION_NAMES> = {
-  data: Partial<ZOD_COLLECTIONS[Name]>;
+type CreateArgs<Col extends GeneratedCollection> = {
+  data: { implementMe: string };
 };
 
-const create = <Name extends COLLECTION_NAMES>(
-  internalArgs: CollHelperInternalArgs<Name>,
+const create = <Schema extends GeneratedHubspotSchema, Name extends CollectionName<Schema>>(
+  internalArgs: CollHelperInternalArgs<Schema, Name>,
   args: CreateArgs<Name>,
 ) => {
 };

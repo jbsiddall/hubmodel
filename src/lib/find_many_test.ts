@@ -1,4 +1,4 @@
-import { createHubspotClient } from "../lib/index.ts";
+import { createHubModelClient } from "./client.ts";
 import { afterAll, beforeAll, describe, it } from "https://deno.land/std@0.201.0/testing/bdd.ts";
 import { axios } from "./deps.ts";
 import { assertSnapshot } from "https://deno.land/std@0.201.0/testing/snapshot.ts";
@@ -18,7 +18,7 @@ afterAll(() => flushAxiosSnapshot());
 
 const accessToken = Deno.args.includes("--update") ? getConfig().HUBSPOT_TOKEN : "faketoken";
 
-const client = createHubspotClient({ axios: cachedAxios, accessToken });
+const client = createHubModelClient({ axios: cachedAxios, accessToken });
 
 describe("FindMany", () => {
   describe("Select Clause", () => {

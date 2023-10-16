@@ -1,5 +1,5 @@
-import { createHubspotClient } from "../../lib/index.ts";
+import { createHubModelClient } from "../../lib/client.ts";
 import { axios } from "../../deps.ts";
 import { getConfig } from "../../env.ts";
 
-export const client = createHubspotClient({ axios: axios.create(), accessToken: getConfig().HUBSPOT_TOKEN });
+export const client = createHubModelClient({ axios: axios.create(), accessToken: getConfig().HUBSPOT_TOKEN });

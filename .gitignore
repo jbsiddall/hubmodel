@@ -6,3 +6,4 @@ dist
 src/generated.ts
 dev.ts
 npm/
+hubmodel.yml
