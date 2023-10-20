@@ -35,17 +35,17 @@ export const FIELD_VALIDATORS = {
   bool: createFieldClause(z.boolean()),
 } as const;
 
-type CollectionValidatorBase = z.ZodObject<Record<string, (typeof FIELD_VALIDATORS)[keyof typeof FIELD_VALIDATORS]>>;
+type CollectionValidatorBase = z.ZodObject<Record<string, z.ZodOptional<(typeof FIELD_VALIDATORS)[keyof typeof FIELD_VALIDATORS]>>>;
 
-type CollectionWhere = CollectionValidatorBase extends z.ZodObject<infer G> ? G : never;
+type CollectionWhere = CollectionValidatorBase extends z.ZodType<infer G> ? G : never;
 
 export const verifyCollectionSimpleFieldBase = <X extends CollectionValidatorBase>(x: X): X => x;
 
 export const createCollectionWhereValidator = <X extends CollectionValidatorBase>(x: X) => {
   return createCollectionClause(x);
 };
-type CollectionValidatorBaseV2 = ReturnType<typeof createCollectionWhereValidator<CollectionValidatorBase>> extends
-  z.ZodType<infer G> ? G : never;
+export type WhereValidatorBase = ReturnType<typeof createCollectionWhereValidator<CollectionValidatorBase>>
+export type CollectionValidatorBaseV2 = WhereValidatorBase extends z.ZodType<infer G> ? G : never;
 
 export const whereClauseToFilterGroups = (where: CollectionValidatorBaseV2): FilterGroup[] => {
   const x = where["OR"];

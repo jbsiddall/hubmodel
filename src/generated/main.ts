@@ -1,25 +1,26 @@
-import { definition as collection_tickets } from "./$tickets.ts";
 import { definition as collection_contacts } from "./$contacts.ts";
-import { definition as collection_tasks } from "./$tasks.ts";
-import {
-  createHubModelClient as _createHubModelClient,
-  type HubModelClient as HubModelClientInterface,
-  type HubModelClientConfig,
-} from "../lib/client.ts";
-import { type GeneratedHubspotSchema, verifySchema } from "../lib/common.ts";
+import { definition as collection_deals } from "./$deals.ts";
+import { type HubModelClientConfig, type HubModelClient as HubModelClientInterface, createHubModelClient as _createHubModelClient } from "../lib/client.ts";
+import { type GeneratedHubspotSchema, verifySchema, CollectionInstance } from "../lib/common.ts";
+import { z } from "../lib/deps.ts"
 
 export { type HubModelClientConfig } from "../lib/client.ts";
 const schema = verifySchema({
-  collections: {
-    tickets: collection_tickets,
-    contacts: collection_contacts,
-    tasks: collection_tasks,
-  },
-});
+        collections: {
+            contacts: collection_contacts,
+            deals: collection_deals
+        }
+    });
 
 export interface HubModelClient extends HubModelClientInterface<typeof schema> {
 }
 
+export interface contactsInstance<Properties extends keyof z.infer<(typeof schema)["collections"]["contacts"]["InstanceValidator"]>> extends CollectionInstance<(typeof schema)["collections"]["contacts"], Properties> {
+}
+
+export interface dealsInstance<Properties extends keyof z.infer<(typeof schema)["collections"]["deals"]["InstanceValidator"]>> extends CollectionInstance<(typeof schema)["collections"]["deals"], Properties> {
+}
+
 export function createHubModelClient(config: HubModelClientConfig): HubModelClient {
-  return _createHubModelClient({ schema, config });
+    return _createHubModelClient({schema, config})
 }

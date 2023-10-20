@@ -1,5 +1,5 @@
 import { z } from "../lib/deps.ts";
-import { createCollectionWhereValidator, FIELD_VALIDATORS } from "../lib/where.ts";
+import { CollectionValidatorBaseV2, createCollectionWhereValidator, FIELD_VALIDATORS, WhereValidatorBase } from "../lib/where.ts";
 import { verifyCollection } from "../lib/common.ts";
 
 export const InstanceValidator = z.object({
@@ -546,7 +546,7 @@ const WhereArgValidator = createCollectionWhereValidator(z.object({
   hs_all_owner_ids: FIELD_VALIDATORS.enumeration,
   hs_all_team_ids: FIELD_VALIDATORS.enumeration,
   hs_all_accessible_team_ids: FIELD_VALIDATORS.enumeration,
-}));
+})) satisfies WhereValidatorBase;
 const SelectArgValidator = z.record(
   z.union([
     z.literal("closed_date"),

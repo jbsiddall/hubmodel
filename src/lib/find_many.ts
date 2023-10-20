@@ -5,8 +5,8 @@ import {
   GeneratedCollection,
   GeneratedHubspotSchema,
 } from "./common.ts";
-import { R, z } from "./deps.ts";
-import { Filter, FilterGroup, searchObjects } from "../rest.ts";
+import { z } from "./deps.ts";
+import { searchObjects } from "../rest.ts";
 import { whereClauseToFilterGroups } from "./where.ts";
 
 interface FindManyArgsBase<Col extends GeneratedCollection> {
@@ -57,7 +57,7 @@ async <const Arg extends FindManyArgsBase<Schema["collections"][Name]>>(
   const select = col.SelectArgValidator.parse(selectUnsafe);
   const where = col.WhereArgValidator.parse(whereUnsafe);
 
-  const filterGroups = whereClauseToFilterGroups({ where });
+  const filterGroups = whereClauseToFilterGroups(where);
 
   const results = await searchObjects({
     axios: client,

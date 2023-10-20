@@ -1,4 +1,6 @@
 import { AxiosInstance, z } from "./deps.ts";
+import { CollectionValidatorBaseV2, WhereValidatorBase } from "./where.ts";
+
 
 /**
  * ensures that a sub type doesn't have any extra keys not in the superclass
@@ -52,7 +54,7 @@ export interface GeneratedSelectArgValidator extends z.ZodRecord<SelectArgHelper
 
 export interface GeneratedCollection {
   SelectArgValidator: GeneratedSelectArgValidator;
-  WhereArgValidator: z.ZodObject<any>;
+  WhereArgValidator: WhereValidatorBase,
   InstanceValidator: z.ZodObject<any>;
 }
 

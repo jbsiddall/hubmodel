@@ -1,4 +1,4 @@
-import { createHubModelClient } from "./client.ts";
+import { contactsInstance, createHubModelClient } from "../generated/main.ts";
 import { afterAll, beforeAll, describe, it } from "https://deno.land/std@0.201.0/testing/bdd.ts";
 import { axios } from "./deps.ts";
 import { assertSnapshot } from "https://deno.land/std@0.201.0/testing/snapshot.ts";
@@ -28,7 +28,7 @@ describe("FindMany", () => {
           select: {
             hs_all_accessible_team_ids: true,
             address: true,
-            // @ts-expect-error only known properties allowed to be selected
+            // // @ts-expect-error only known properties allowed to be selected
             fake_property_that_doesnt_exist: true,
           },
         })
@@ -171,7 +171,7 @@ describe("FindMany", () => {
 });
 
 const sanitiseContactsForSnapshot = (
-  contacts: CollectionInstance<"contacts", any>[],
+  contacts: contactsInstance<any>[],
 ) => {
   return contacts.map((c) => {
     return { ...c, updatedAt: undefined };

@@ -1,11 +1,13 @@
-import outdent from "http://deno.land/x/outdent/mod.ts";
+import outdent from "https://deno.land/x/outdent@v0.8.0/mod.ts";
 import { fromFileUrl, join, normalize } from "https://deno.land/std@0.201.0/path/mod.ts";
 import { axios, R, z } from "./deps.ts";
 import { configureAxios, getObjectTypeProperties, PropertyDefinitionValidator } from "../rest.ts";
-import { Project, StructureKind, VariableDeclarationKind, Writers } from "https://deno.land/x/ts_morph/mod.ts";
+import { Project, StructureKind, VariableDeclarationKind, Writers } from "https://deno.land/x/ts_morph@20.0.0/mod.ts";
 import { ConfigValidator } from "./config.ts";
-import { parse as parseYaml } from "https://deno.land/std@0.202.0/yaml/mod.ts";
 import { HubspotFieldType } from "../lib/common.ts";
+import { parse as parseArgs,  } from "https://deno.land/std@0.202.0/flags/mod.ts";
+import { stringify as stringifyYaml, parse as parseYaml } from "https://deno.land/std@0.202.0/yaml/mod.ts";
+
 
 const folderToWriteTo = join(
   fromFileUrl(import.meta.url),
@@ -46,7 +48,35 @@ const relativePath = (fromPath: string, toPath: string) => {
   return join(...fromPathExtras, ...toPathParts.slice(mraParts.length));
 };
 
+const initConfig = async ({hubspotToken}: {hubspotToken: string}) => {
+  await Deno.writeTextFile('hubmodel.yml', stringifyYaml({
+    environment: 'deno',
+    hubspotToken,
+    collections: ['contacts', 'deals'],
+  } satisfies z.infer<typeof ConfigValidator>), {createNew: true})
+}
+
 const main = async () => {
+
+  const flags = parseArgs(Deno.args, {
+    boolean: ['init'],
+    string: ['hubspotToken'],
+
+    default: {
+      init: false,
+    }
+  })
+  type KnownFlags = keyof {[K in keyof typeof flags as string extends K ? never : K]: true}
+
+  if (flags.init) {
+    if (!flags.hubspotToken) {
+      console.log(`missing arg --${"hubspotToken" satisfies KnownFlags}`)
+      Deno.exit(1)
+    }
+    await initConfig({hubspotToken: flags.hubspotToken})
+    return
+  }
+
   const config = ConfigValidator.parse(parseYaml(await Deno.readTextFile("./hubmodel.yml")));
   configureAxios({ axios, accessToken: config.hubspotToken });
   await Deno.mkdir(folderToWriteTo, { recursive: true });
@@ -158,7 +188,7 @@ const main = async () => {
                 propertiesAsObject[name] = `FIELD_VALIDATORS.${type}`;
               });
               Writers.object(propertiesAsObject)(w);
-              w.writeLine("))");
+              w.writeLine(").partial())");
             },
           },
         ],
@@ -237,6 +267,7 @@ const main = async () => {
     namedImports: [
       { name: "GeneratedHubspotSchema", isTypeOnly: true },
       { name: "verifySchema" },
+      { name: "CollectionInstance" },
     ],
   });
 
@@ -266,6 +297,15 @@ const main = async () => {
     isExported: true,
     extends: [`HubModelClientInterface<typeof schema>`],
   });
+
+  config.collections.forEach(colName => {
+    file.addInterface({
+      name: `${colName + 'Instance'}`,
+      isExported: true,
+      typeParameters: [{name: 'Properties', constraint: `keyof z.infer<(typeof schema)["collections"]["${colName}"]["InstanceValidator"]>`}],
+      extends: [`CollectionInstance<(typeof schema)["collections"]["${colName}"], Properties>`],
+    });
+  })
 
   file.addFunction({
     name: "createHubModelClient",
