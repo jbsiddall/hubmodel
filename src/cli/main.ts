@@ -5,6 +5,7 @@ import { configureAxios, getObjectTypeProperties, PropertyDefinitionValidator } 
 import { Project, StructureKind, VariableDeclarationKind, Writers } from "https://deno.land/x/ts_morph/mod.ts";
 import { ConfigValidator } from "./config.ts";
 import { parse as parseYaml } from "https://deno.land/std@0.202.0/yaml/mod.ts";
+import { HubspotFieldType } from "../lib/common.ts";
 
 const folderToWriteTo = join(
   fromFileUrl(import.meta.url),
@@ -92,6 +93,19 @@ const main = async () => {
         moduleSpecifier: join(relativeLibFolder, "deps.ts"),
         namedImports: ["z"],
       });
+      file.addImportDeclaration({
+        moduleSpecifier: join(relativeLibFolder, "where.ts"),
+        namedImports: [
+          { name: "FIELD_VALIDATORS" },
+          { name: "createCollectionWhereValidator" },
+        ],
+      });
+      file.addImportDeclaration({
+        moduleSpecifier: join(relativeLibFolder, "common.ts"),
+        namedImports: [
+          { name: "verifyCollection" },
+        ],
+      });
 
       file.addVariableStatement({
         declarationKind: VariableDeclarationKind.Const,
@@ -112,21 +126,39 @@ const main = async () => {
           },
         ],
       });
+
+      // file.addVariableStatement({
+      //   declarationKind: VariableDeclarationKind.Const,
+      //   isExported: false,
+      //   declarations: [
+      //     {
+      //       name: "WhereSimpleFieldBase",
+      //       initializer: (w) => {
+      //         w.write("verifyCollectionSimpleFieldBase(z.object(");
+      //         const propertiesAsObject = {} as Record<string, string>
+      //         properties.forEach(({name, type}) => {
+      //           propertiesAsObject[name] = `FIELD_VALIDATORS.${type}`
+      //         })
+      //         Writers.object(propertiesAsObject)(w)
+      //         w.writeLine("))");
+      //       },
+      //     },
+      //   ],
+      // });
       file.addVariableStatement({
         declarationKind: VariableDeclarationKind.Const,
         isExported: false,
         declarations: [
           {
-            name: "SelectArgValidator",
+            name: "WhereArgValidator",
             initializer: (w) => {
-              w.write("z.object(");
-              Writers.object(
-                properties.reduce(
-                  (r, p) => ({ ...r, [p.name]: "z.literal(true).optional()" as const }),
-                  {} as Record<string, string>,
-                ),
-              )(w);
-              w.writeLine(").strict()");
+              w.write("createCollectionWhereValidator(z.object(");
+              const propertiesAsObject = {} as Record<string, string>;
+              properties.forEach(({ name, type }) => {
+                propertiesAsObject[name] = `FIELD_VALIDATORS.${type}`;
+              });
+              Writers.object(propertiesAsObject)(w);
+              w.writeLine("))");
             },
           },
         ],
@@ -136,16 +168,13 @@ const main = async () => {
         isExported: false,
         declarations: [
           {
-            name: "WhereArgValidator",
+            name: "SelectArgValidator",
             initializer: (w) => {
-              w.write("z.object(");
-              Writers.object(
-                properties.reduce(
-                  (r, p) => ({ ...r, [p.name]: "z.literal(true).optional()" as const }),
-                  {} as Record<string, string>,
-                ),
-              )(w);
-              w.writeLine(").strict()");
+              const propertyLiterals = properties.map((p) => `z.literal("${p.name}")`).join(", ");
+              w.writeLine("z.record(");
+              w.writeLine(`z.union([${propertyLiterals}]),`);
+              w.writeLine(`z.literal(true),`);
+              w.writeLine(")");
             },
           },
         ],
@@ -157,13 +186,13 @@ const main = async () => {
           {
             name: "definition",
             initializer: (w) => {
-              w.write("(");
+              w.write("verifyCollection(");
               Writers.object({
                 SelectArgValidator: "SelectArgValidator",
                 WhereArgValidator: "WhereArgValidator",
                 InstanceValidator: "InstanceValidator",
               })(w);
-              w.write(") as const");
+              w.write(")");
             },
           },
         ],
@@ -304,7 +333,7 @@ const ZodDateExprV2 = `
     })
 `;
 
-const primitiveHubspotTypesToZodV2: Record<string, string> = {
+const primitiveHubspotTypesToZodV2: Record<Exclude<HubspotFieldType, "enumeration">, string> = {
   string: ZodStringExprV2,
   datetime: ZodDateExprV2,
   date: ZodDateExprV2,
@@ -316,7 +345,7 @@ const primitiveHubspotTypesToZodV2: Record<string, string> = {
 const lookupZodTypeV2 = (
   property: z.infer<typeof PropertyDefinitionValidator>,
 ): string => {
-  const tsType = primitiveHubspotTypesToZodV2[property.type];
+  const tsType = (primitiveHubspotTypesToZodV2 as Record<string, string>)[property.type];
 
   if (tsType) {
     return tsType;

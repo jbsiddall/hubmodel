@@ -2,13 +2,12 @@ import {
   CollectionInstance,
   CollectionName,
   CollHelperInternalArgs,
-  DefaultSelectArg,
   GeneratedCollection,
   GeneratedHubspotSchema,
-  NoExtraKeys,
 } from "./common.ts";
 import { R, z } from "./deps.ts";
 import { Filter, FilterGroup, searchObjects } from "../rest.ts";
+import { whereClauseToFilterGroups } from "./where.ts";
 
 interface FindManyArgsBase<Col extends GeneratedCollection> {
   select?: z.infer<Col["SelectArgValidator"]>;
@@ -35,11 +34,17 @@ const SimpleObjectValidator = z.object({
 });
 
 const findMany = <Schema extends GeneratedHubspotSchema, Name extends CollectionName<Schema>>(
-  { collectionName, client }: CollHelperInternalArgs<Schema, Name>,
+  { collectionName, client, schema }: CollHelperInternalArgs<Schema, Name>,
 ) =>
 async <const Arg extends FindManyArgsBase<Schema["collections"][Name]>>(
-  { select, where, take, skip }: Arg,
+  { select: selectUnsafe, where: whereUnsafe, take, skip }: Arg,
 ): Promise<CollectionInstance<Schema["collections"][Name], keyof Arg["select"]>[]> => {
+  const col = schema.collections[collectionName];
+
+  if (!col) {
+    throw new Error(`no collection ${collectionName}`);
+  }
+
   if (take !== undefined && take < 0) {
     throw new Error(`take must be positive`);
   }
@@ -48,6 +53,10 @@ async <const Arg extends FindManyArgsBase<Schema["collections"][Name]>>(
     throw new Error(`skip must be positive`);
   }
 
+  // TODO handle error
+  const select = col.SelectArgValidator.parse(selectUnsafe);
+  const where = col.WhereArgValidator.parse(whereUnsafe);
+
   const filterGroups = whereClauseToFilterGroups({ where });
 
   const results = await searchObjects({
@@ -55,83 +64,21 @@ async <const Arg extends FindManyArgsBase<Schema["collections"][Name]>>(
     objectType: collectionName,
     properties: Object.keys(select ?? {}),
     filterGroups,
-    after: skip as any as number,
-    limit: take as any as number,
+    after: skip,
+    limit: take,
   });
 
-  const RawValidator: META["collectionProperties"][Name] = __META__.collectionProperties[collectionName];
-  // TODO remove any from following line
-  const collectionValidator: typeof RawValidator = (RawValidator.pick as any)(select ?? []);
+  const RawValidator = col.InstanceValidator.pick(select);
 
   const rows = results.map((row) => SimpleObjectValidator.parse(row)).map(
-    (row) => ({
-      ...row,
-      properties: collectionValidator.parse(row.properties),
-    }),
-  );
-  return rows as any;
-};
-
-interface WhereClauseToFilterGroupsArgs<Name extends COLLECTION_NAMES> {
-  where: WhereArg<Name> | undefined;
-}
-
-const whereClauseToFilterGroups = <Name extends COLLECTION_NAMES, Arg extends WhereClauseToFilterGroupsArgs<Name>>(
-  { where }: Arg,
-): FilterGroup[] => {
-  const keys = where === undefined ? [] : R.keys(where);
-  const filters: Filter[] = keys.reduce(
-    (partialResults, key) => {
-      if (typeof key === "symbol" || typeof key === "number") {
-        throw new Error(`where clause key '${String(key)}' must be of type string`);
-      }
-
-      if (!where) {
-        return partialResults;
-      }
-
-      const filter = where[key];
-
-      if (!filter) {
-        return partialResults;
-      }
-
-      const newPartial = [...partialResults];
-
-      if ("equals" in filter) {
-        if (filter.equals === null) {
-          newPartial.push(
-            { propertyName: key, operator: "NOT_HAS_PROPERTY" },
-          );
-        } else {
-          newPartial.push(
-            { propertyName: key, operator: "EQ", value: `${String(filter.equals)}` },
-          );
-        }
-      }
-
-      if ("not" in filter) {
-        if (filter.not === null) {
-          newPartial.push({ propertyName: key, operator: "HAS_PROPERTY" });
-        } else {
-          newPartial.push({
-            propertyName: key,
-            operator: "NEQ",
-            value: `${String(filter.not)}`,
-          });
-        }
-      }
-
-      return newPartial;
-    },
-    [] as Filter[],
+    (row) =>
+      ({
+        ...row,
+        properties: RawValidator.parse(row.properties),
+      }) as CollectionInstance<Schema["collections"][Name], keyof Arg["select"]>,
   );
 
-  if (filters.length === 0) {
-    return [];
-  }
-
-  return [{ filters }];
+  return rows;
 };
 
 export const collectionHelpers = <Schema extends GeneratedHubspotSchema, Name extends CollectionName<Schema>>(

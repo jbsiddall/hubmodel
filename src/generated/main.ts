@@ -20,8 +20,6 @@ const schema = verifySchema({
 export interface HubModelClient extends HubModelClientInterface<typeof schema> {
 }
 
-export async function createHubModelClient(config: HubModelClientConfig) {
-  const c = _createHubModelClient({ schema: schema as GeneratedHubspotSchema, config });
-  const result = await c.contacts.findMany({ select: { email: true } });
-  result[0].properties.email;
+export function createHubModelClient(config: HubModelClientConfig): HubModelClient {
+  return _createHubModelClient({ schema, config });
 }

@@ -14,6 +14,6 @@ type CreateArgs<Col extends GeneratedCollection> = {
 
 const create = <Schema extends GeneratedHubspotSchema, Name extends CollectionName<Schema>>(
   internalArgs: CollHelperInternalArgs<Schema, Name>,
-  args: CreateArgs<Name>,
+  args: CreateArgs<Schema["collections"][Name]>,
 ) => {
 };
