@@ -54,10 +54,14 @@ async <const Arg extends FindManyArgsBase<Schema["collections"][Name]>>(
   }
 
   // TODO handle error
-  const select = col.SelectArgValidator.parse(selectUnsafe);
-  const where = col.WhereArgValidator.parse(whereUnsafe);
+  const select = selectUnsafe
+    ? col.SelectArgValidator.parse(selectUnsafe satisfies z.infer<typeof col.SelectArgValidator>)
+    : undefined;
+  const where = whereUnsafe
+    ? col.WhereArgValidator.parse(whereUnsafe satisfies z.infer<typeof col.WhereArgValidator>)
+    : undefined;
 
-  const filterGroups = whereClauseToFilterGroups(where);
+  const filterGroups = where ? whereClauseToFilterGroups(where) : undefined;
 
   const results = await searchObjects({
     axios: client,
@@ -68,7 +72,7 @@ async <const Arg extends FindManyArgsBase<Schema["collections"][Name]>>(
     limit: take,
   });
 
-  const RawValidator = col.InstanceValidator.pick(select);
+  const RawValidator = col.InstanceValidator.pick(select ?? {});
 
   const rows = results.map((row) => SimpleObjectValidator.parse(row)).map(
     (row) =>

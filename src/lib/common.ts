@@ -1,7 +1,6 @@
 import { AxiosInstance, z } from "./deps.ts";
 import { CollectionValidatorBaseV2, WhereValidatorBase } from "./where.ts";
 
-
 /**
  * ensures that a sub type doesn't have any extra keys not in the superclass
  * Scenario where this is needed:
@@ -54,7 +53,7 @@ export interface GeneratedSelectArgValidator extends z.ZodRecord<SelectArgHelper
 
 export interface GeneratedCollection {
   SelectArgValidator: GeneratedSelectArgValidator;
-  WhereArgValidator: WhereValidatorBase,
+  WhereArgValidator: WhereValidatorBase;
   InstanceValidator: z.ZodObject<any>;
 }
 
@@ -66,11 +65,14 @@ export interface GeneratedHubspotSchema {
 
 export const verifySchema = <const S extends GeneratedHubspotSchema>(schema: S): S => schema;
 
-export type HubspotFieldType =
-  | "string"
-  | "datetime"
-  | "date"
-  | "phone_number"
-  | "bool"
-  | "number"
-  | "enumeration";
+export const HubspotFieldTypeValidator = z.union([
+  z.literal("string"),
+  z.literal("datetime"),
+  z.literal("date"),
+  z.literal("phone_number"),
+  z.literal("bool"),
+  z.literal("number"),
+  z.literal("enumeration"),
+]);
+
+export type HubspotFieldType = z.infer<typeof HubspotFieldTypeValidator>;

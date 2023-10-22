@@ -33,9 +33,12 @@ export const FIELD_VALIDATORS = {
   date: createFieldClause(z.date()),
   datetime: createFieldClause(z.date()),
   bool: createFieldClause(z.boolean()),
-} as const;
+  unknown: createFieldClause(z.unknown()),
+} as const satisfies Record<HubspotFieldType | "unknown", any>;
 
-type CollectionValidatorBase = z.ZodObject<Record<string, z.ZodOptional<(typeof FIELD_VALIDATORS)[keyof typeof FIELD_VALIDATORS]>>>;
+type CollectionValidatorBase = z.ZodObject<
+  Record<string, z.ZodOptional<(typeof FIELD_VALIDATORS)[keyof typeof FIELD_VALIDATORS]>>
+>;
 
 type CollectionWhere = CollectionValidatorBase extends z.ZodType<infer G> ? G : never;
 
@@ -44,7 +47,7 @@ export const verifyCollectionSimpleFieldBase = <X extends CollectionValidatorBas
 export const createCollectionWhereValidator = <X extends CollectionValidatorBase>(x: X) => {
   return createCollectionClause(x);
 };
-export type WhereValidatorBase = ReturnType<typeof createCollectionWhereValidator<CollectionValidatorBase>>
+export type WhereValidatorBase = ReturnType<typeof createCollectionWhereValidator<CollectionValidatorBase>>;
 export type CollectionValidatorBaseV2 = WhereValidatorBase extends z.ZodType<infer G> ? G : never;
 
 export const whereClauseToFilterGroups = (where: CollectionValidatorBaseV2): FilterGroup[] => {

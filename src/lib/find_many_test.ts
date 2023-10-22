@@ -9,8 +9,7 @@ import {
   initCache as initAxiosSnapshot,
 } from "./axios_snapshot.ts";
 import { CollectionInstance } from "./common.ts";
-import { assertRejects } from "https://deno.land/std@0.201.0/assert/assert_rejects.ts";
-import { assertEquals } from "https://deno.land/std@0.201.0/assert/assert_equals.ts";
+import { assertEquals, assertRejects } from "https://deno.land/std@0.201.0/assert/mod.ts";
 
 const cachedAxios = createAxiosSnapshot(axios);
 beforeAll(() => initAxiosSnapshot());
@@ -22,7 +21,7 @@ const client = createHubModelClient({ axios: cachedAxios, accessToken });
 
 describe("FindMany", () => {
   describe("Select Clause", () => {
-    it.skip("runtime error when field selected that doesnt exist", async () => {
+    it.skip("runtime error when field selected that doesnt exist", async (t) => {
       await assertRejects(() =>
         client.contacts.findMany({
           select: {
@@ -39,7 +38,6 @@ describe("FindMany", () => {
       const contacts = await client.contacts.findMany({
         select: { email: true },
       });
-      console.log("contacts are", contacts);
       assertSnapshot(ctx, sanitiseContactsForSnapshot(contacts));
     });
   });

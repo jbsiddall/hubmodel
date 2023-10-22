@@ -4,10 +4,10 @@ import { axios, R, z } from "./deps.ts";
 import { configureAxios, getObjectTypeProperties, PropertyDefinitionValidator } from "../rest.ts";
 import { Project, StructureKind, VariableDeclarationKind, Writers } from "https://deno.land/x/ts_morph@20.0.0/mod.ts";
 import { ConfigValidator } from "./config.ts";
-import { HubspotFieldType } from "../lib/common.ts";
-import { parse as parseArgs,  } from "https://deno.land/std@0.202.0/flags/mod.ts";
-import { stringify as stringifyYaml, parse as parseYaml } from "https://deno.land/std@0.202.0/yaml/mod.ts";
-
+import { HubspotFieldType, HubspotFieldTypeValidator } from "../lib/common.ts";
+import { parse as parseArgs } from "https://deno.land/std@0.202.0/flags/mod.ts";
+import { parse as parseYaml, stringify as stringifyYaml } from "https://deno.land/std@0.202.0/yaml/mod.ts";
+import { FIELD_VALIDATORS } from "../lib/where.ts";
 
 const folderToWriteTo = join(
   fromFileUrl(import.meta.url),
@@ -48,33 +48,38 @@ const relativePath = (fromPath: string, toPath: string) => {
   return join(...fromPathExtras, ...toPathParts.slice(mraParts.length));
 };
 
-const initConfig = async ({hubspotToken}: {hubspotToken: string}) => {
-  await Deno.writeTextFile('hubmodel.yml', stringifyYaml({
-    environment: 'deno',
-    hubspotToken,
-    collections: ['contacts', 'deals'],
-  } satisfies z.infer<typeof ConfigValidator>), {createNew: true})
-}
+const initConfig = async ({ hubspotToken }: { hubspotToken: string }) => {
+  await Deno.writeTextFile(
+    "hubmodel.yml",
+    stringifyYaml(
+      {
+        environment: "deno",
+        hubspotToken,
+        collections: ["contacts", "deals"],
+      } satisfies z.infer<typeof ConfigValidator>,
+    ),
+    { createNew: true },
+  );
+};
 
 const main = async () => {
-
   const flags = parseArgs(Deno.args, {
-    boolean: ['init'],
-    string: ['hubspotToken'],
+    boolean: ["init"],
+    string: ["hubspotToken"],
 
     default: {
       init: false,
-    }
-  })
-  type KnownFlags = keyof {[K in keyof typeof flags as string extends K ? never : K]: true}
+    },
+  });
+  type KnownFlags = keyof { [K in keyof typeof flags as string extends K ? never : K]: true };
 
   if (flags.init) {
     if (!flags.hubspotToken) {
-      console.log(`missing arg --${"hubspotToken" satisfies KnownFlags}`)
-      Deno.exit(1)
+      console.log(`missing arg --${"hubspotToken" satisfies KnownFlags}`);
+      Deno.exit(1);
     }
-    await initConfig({hubspotToken: flags.hubspotToken})
-    return
+    await initConfig({ hubspotToken: flags.hubspotToken });
+    return;
   }
 
   const config = ConfigValidator.parse(parseYaml(await Deno.readTextFile("./hubmodel.yml")));
@@ -185,7 +190,11 @@ const main = async () => {
               w.write("createCollectionWhereValidator(z.object(");
               const propertiesAsObject = {} as Record<string, string>;
               properties.forEach(({ name, type }) => {
-                propertiesAsObject[name] = `FIELD_VALIDATORS.${type}`;
+                const parsedTypeResult = HubspotFieldTypeValidator.safeParse(type);
+                const usableType = parsedTypeResult.success
+                  ? parsedTypeResult.data
+                  : "unknown" satisfies keyof typeof FIELD_VALIDATORS;
+                propertiesAsObject[name] = `FIELD_VALIDATORS.${usableType}`;
               });
               Writers.object(propertiesAsObject)(w);
               w.writeLine(").partial())");
@@ -248,6 +257,13 @@ const main = async () => {
   // };
 
   file.addImportDeclaration({
+    moduleSpecifier: join(relativeLibFolder, "deps.ts"),
+    namedImports: [
+      { name: "z" },
+    ],
+  });
+
+  file.addImportDeclaration({
     moduleSpecifier: join(relativeLibFolder, "client.ts"),
     namedImports: [
       { name: "HubModelClientConfig", isTypeOnly: true },
@@ -298,14 +314,17 @@ const main = async () => {
     extends: [`HubModelClientInterface<typeof schema>`],
   });
 
-  config.collections.forEach(colName => {
+  config.collections.forEach((colName) => {
     file.addInterface({
-      name: `${colName + 'Instance'}`,
+      name: `${colName + "Instance"}`,
       isExported: true,
-      typeParameters: [{name: 'Properties', constraint: `keyof z.infer<(typeof schema)["collections"]["${colName}"]["InstanceValidator"]>`}],
+      typeParameters: [{
+        name: "Properties",
+        constraint: `keyof z.infer<(typeof schema)["collections"]["${colName}"]["InstanceValidator"]>`,
+      }],
       extends: [`CollectionInstance<(typeof schema)["collections"]["${colName}"], Properties>`],
     });
-  })
+  });
 
   file.addFunction({
     name: "createHubModelClient",
