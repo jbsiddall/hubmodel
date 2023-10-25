@@ -1,7 +1,6 @@
 import outdent from "../../npm/esm/deps/deno.land/x/outdent@v0.8.0/mod.js";
 import { axios, AxiosRequestConfig } from "../deps.ts";
 import { AxiosInstance, AxiosResponse, R, z } from "./deps.ts";
-import { v5 as uuid } from "https://deno.land/std@0.202.0/uuid/mod.ts";
 import { crypto } from "https://deno.land/std@0.204.0/crypto/mod.ts";
 import { encodeBase64 } from "https://deno.land/std@0.204.0/encoding/base64.ts";
 
@@ -14,9 +13,52 @@ const RequestValidator = z.object({
   method: MethodValidator,
 });
 
+const HeaderInputValueValidator = z.union([
+  z.string(),
+  z.string().array(),
+  z.boolean(),
+  z.number(),
+  z.null(),
+  z.undefined(),
+  z.instanceof(axios.AxiosHeaders),
+]);
+
 const ResponseValidator = z.object({
   data: z.unknown(),
-  headers: z.record(z.string()),
+  headers: z.record(HeaderInputValueValidator).or(z.instanceof(axios.AxiosHeaders)).transform((headersOrInst) => {
+    const headers: Record<string, unknown> = headersOrInst instanceof axios.AxiosHeaders
+      ? { ...headersOrInst }
+      : headersOrInst;
+
+    return Object.entries(headers).reduce(
+      (acc, [k, uncheckedV]) => {
+        const vParsed = HeaderInputValueValidator.safeParse(uncheckedV);
+        if (!vParsed.success) {
+          console.warn(`failed to parse header '${String(uncheckedV)}'('${typeof uncheckedV}'). `, new Error().stack);
+          return acc;
+        }
+
+        const v = vParsed.data;
+
+        if (v instanceof axios.AxiosHeaders) {
+          console.warn(`failed to parse nested AxiosHeaders '${String(v)}' for header '${k}'.`, new Error().stack);
+          return acc;
+        }
+
+        if (v === null || v === undefined) {
+          return acc;
+        }
+        if (typeof v === "number" || typeof v === "boolean") {
+          return { ...acc, [k]: String(v) };
+        }
+        if (Array.isArray(v)) {
+          return { ...acc, [k]: v.join(",") };
+        }
+        return { ...acc, [k]: v satisfies string };
+      },
+      {} as Record<string, string>,
+    );
+  }),
   status: z.number(),
 });
 
@@ -36,10 +78,8 @@ const RunningContextValidator = z.object({
   expectedRequestHashes: z.string().array(),
   contextName: z.string(),
   ignoreOrder: z.boolean(),
-  requestsMadeCount: z.number(),
+  seenRequestHashes: z.string().array(),
 });
-
-type ContextId = string;
 
 interface AssertSameNetworkRequestsOptions {
   ctx: Deno.TestContext;
@@ -182,7 +222,7 @@ export const createForTesting = async (createArgs: CreateArgs) => {
             contextName,
             expectedRequestHashes: expectedRequestHashes ?? [],
             ignoreOrder: ignoreOrder ?? false,
-            requestsMadeCount: 0,
+            seenRequestHashes: [],
           },
         },
       }));
@@ -197,16 +237,71 @@ export const createForTesting = async (createArgs: CreateArgs) => {
     }
   `)();
 
-    try {
-      return await wrappedAsyncFn(fn);
-    } finally {
+    // const isRequestOutOfOrder = indexIntoKnownHashes !== -1 &&
+    //   !runningContext.ignoreOrder &&
+    //   indexIntoKnownHashes !== runningContext.requestsMadeCount;
+    // if (isRequestOutOfOrder) {
+    //   const existingCacheEntries = Object.values(cacheContext.entries).map(({ request: x }) =>
+    //     `* ${x.method} ${x.url} ${x.headers} ${JSON.stringify(x.data)}`
+    //   ).join("\n");
+
+    //   throw new Error(outdent`
+    //     request out of order in context '${runningContext.contextName}'.
+    //     Request: '${method} ${url} ${headers} ${JSON.stringify(data)}.
+    //     expected position ${runningContext.requestsMadeCount} but was ${indexIntoKnownHashes}.
+    //     To Fix: move request hash '${requestHash}' into index ${runningContext.requestsMadeCount}.
+
+    //     Existing Cache Entries:
+    //     ${existingCacheEntries}
+    //   `);
+    // }
+
+    let result: Result;
+
+    const cleanupRunningContext = () => {
       stateTransaction(({ setState }) => {
         setState((s) => ({
           ...s,
           runningContexts: R.omit([callstackUniqueTag], s.runningContexts),
         }));
       });
+    };
+
+    try {
+      result = await wrappedAsyncFn(fn);
+    } catch (e) {
+      cleanupRunningContext();
+      throw e;
     }
+
+    stateTransaction(({ txState, setState }) => {
+      const runningContext = txState().runningContexts[callstackUniqueTag];
+      if (!runningContext) {
+        throw new Error(`cant find running context with ID '${callstackUniqueTag}'`);
+      }
+
+      const { expectedRequestHashes, seenRequestHashes } = runningContext;
+      const isRequestListAsExpected = R.equals(runningContext.seenRequestHashes, runningContext.expectedRequestHashes);
+
+      const missingRequestHashes = expectedRequestHashes.filter((x) => !seenRequestHashes.includes(x));
+
+      //   if (!ignoreOrder && )
+      //   const existingCacheEntries = Object.values(cacheContext.entries).map(({ request: x }) =>
+      //     `* ${x.method} ${x.url} ${x.headers} ${JSON.stringify(x.data)}`
+      //   ).join("\n");
+
+      //   throw new Error(outdent`
+      //   request out of order in context '${runningContext.contextName}'.
+      //   Request: '${method} ${url} ${headers} ${JSON.stringify(data)}.
+      //   expected position ${runningContext.requestsMadeCount} but was ${indexIntoKnownHashes}.
+      //   To Fix: move request hash '${requestHash}' into index ${runningContext.requestsMadeCount}.
+
+      //   Existing Cache Entries:
+      //   ${existingCacheEntries}
+      // `);
+    });
+
+    return result;
   };
 
   const getRunningStackId = (): string => {
@@ -253,7 +348,7 @@ export const createForTesting = async (createArgs: CreateArgs) => {
 
       const runningStackId = getRunningStackId();
 
-      const { cacheItem } = stateTransaction(({ txState, setState }) => {
+      const { cacheItem, contextName } = stateTransaction(({ txState, setState }) => {
         const runningContext = txState().runningContexts[runningStackId];
         if (!runningContext) {
           throw new Error(`unexpected error: runningContext not found for stackId: ${runningStackId}`);
@@ -298,38 +393,20 @@ export const createForTesting = async (createArgs: CreateArgs) => {
           `);
         }
 
-        const isRequestOutOfOrder = indexIntoKnownHashes !== -1 &&
-          !runningContext.ignoreOrder &&
-          indexIntoKnownHashes !== runningContext.requestsMadeCount;
-        if (isRequestOutOfOrder) {
-          const existingCacheEntries = Object.values(cacheContext.entries).map(({ request: x }) =>
-            `* ${x.method} ${x.url} ${x.headers} ${JSON.stringify(x.data)}`
-          ).join("\n");
-
-          throw new Error(outdent`
-            request out of order in context '${runningContext.contextName}'.
-            Request: '${method} ${url} ${headers} ${JSON.stringify(data)}.
-            expected position ${runningContext.requestsMadeCount} but was ${indexIntoKnownHashes}.
-            To Fix: move request hash '${requestHash}' into index ${runningContext.requestsMadeCount}.
-
-            Existing Cache Entries:
-            ${existingCacheEntries}}
-          `);
-        }
-
         setState((s) => ({
           ...s,
           runningContexts: {
             ...s.runningContexts,
             [runningStackId]: {
               ...s.runningContexts[runningStackId],
-              requestsMadeCount: s.runningContexts[runningStackId].requestsMadeCount + 1,
+              seenRequestHashes: [...s.runningContexts[runningStackId].seenRequestHashes, requestHash],
             },
           },
         }));
 
         return {
           cacheItem: cacheContext.entries[requestHash] as z.infer<typeof CacheItemValidator> | undefined,
+          contextName: runningContext.contextName,
         };
       });
 
@@ -339,47 +416,36 @@ export const createForTesting = async (createArgs: CreateArgs) => {
 
       const realResponse = await axios[method].apply(axios, [...realArgs] as any) as AxiosResponse;
 
+      // dont return real response for consistency when retrieving from cache vs real API
       const response = ResponseValidator.parse(
         {
           data: realResponse.data,
           headers: realResponse.headers,
           status: realResponse.status,
-        } satisfies z.infer<typeof ResponseValidator>,
+        } satisfies z.input<typeof ResponseValidator>,
       );
+      deepFreeze(response);
 
-      const response = await (async () => {
-        if (updateMode) {
-        } else {
-          const cachedResponse = getFromCacheByRequest(contextEntries, internalRequest)?.response;
-        }
-      })();
+      stateTransaction(({ setState }) => {
+        setState((s) => ({
+          ...s,
+          cache: {
+            ...s.cache,
+            [contextName]: {
+              ...s.cache[contextName],
+              entries: {
+                ...s.cache[contextName].entries,
+                [requestHash]: {
+                  request: internalRequest,
+                  response,
+                },
+              },
+            },
+          },
+        }));
+      });
 
-      const cacheItemFromRequest = getFromCacheByRequest(contextEntries, internalRequest);
-
-      if (cacheItemFromContext) {
-        if (!cacheItemFromRequest) {
-          throw new Error(
-            `axios cache miss for request '${method} ${url} ${
-              JSON.stringify(data)
-            }' BUT found a matching hit with the context '${context}': ${method} ${url} ${JSON.stringify(data)}`,
-          );
-        }
-        return Promise.resolve(cacheItemFromContext.response);
-      }
-
-      if (cacheItemFromRequest) {
-        if (context !== null) {
-          return Promise.resolve(cacheItemFromRequest.response);
-        }
-
-        throw new Error(
-          `axios cache miss for context '${context}' BUT found a matching hit without the context: ${method} ${url} ${
-            JSON.stringify(data)
-          }`,
-        );
-      }
-
-      throw new Error(`axios cache miss: ${method} ${url} ${JSON.stringify(data)}`);
+      return response;
     };
   };
 
@@ -397,124 +463,6 @@ export const createForTesting = async (createArgs: CreateArgs) => {
     flushAndClose,
     assertSameNetworkRequests,
   });
-};
-
-// export const create = (realAxios: AxiosInstance): CreateReturn => {
-//   const cache: z.infer<typeof CacheValidator> = {};
-//   const contextLookup: Record<ContextId, ContextText> = {};
-
-//   const axios = ({
-//     defaults: realAxios.defaults,
-//     post: handleCreator({ method: "post", realAxios, cache }),
-//     put: handleCreator({ method: "put", realAxios, cache }),
-//     get: handleCreator({ method: "get", realAxios, cache }),
-//     delete: handleCreator({ method: "delete", realAxios, cache }),
-//     options: handleCreator({ method: "options", realAxios, cache }),
-//   }) as any;
-
-//   return {
-//     axios,
-//     assertSameNetworkRequests: assertSameNetworkRequestsInternal,
-//   };
-// };
-
-//       return async (url: string, ...args: any[]) => {
-//         const result = await target[methodResult.data].apply(target, [url, ...args] as any) as AxiosResponse;
-//         let data: unknown;
-//         switch (methodResult.data) {
-//           case "post":
-//           case "put":
-//             data = args[0];
-//             break;
-//           default:
-//             data = null;
-//         }
-//         const context = getCurrentContextText();
-
-//         const existingCacheEntry = getFromCacheByRequest({ url, data, method: methodResult.data });
-
-//         if (existingCacheEntry?.request.context !== undefined) {
-//           if (existingCacheEntry.request.context !== context) {
-//             throw new Error(
-//               `axios cache miss for context '${context}' BUT found a matching hit with the context '${existingCacheEntry.request.context}': ${methodResult.data} ${url} ${
-//                 JSON.stringify(data)
-//               }`,
-//             );
-//           }
-//         } else {
-//         }
-
-//         if (shouldAddToCache) {
-//           cache.push(CacheItemValidator.parse({
-//             request: { method: methodResult.data, url, data, context: context ?? undefined },
-//             response: result,
-//           } as z.infer<typeof CacheItemValidator>));
-//         }
-
-//         return result;
-//       };
-//     },
-//   });
-// };
-
-const readonlyHandleCreator = ({ method }: { method: z.infer<typeof MethodValidator> }) => (...args: unknown[]) => {
-  const { url, data, config: { headers }, realArgs } = parseMethodArgs({ method, args });
-
-  const context = getCurrentContextText();
-  const contextEntries = cache[context];
-
-  const internalRequest = RequestValidator.parse(
-    { url, data, method, headers } satisfies z.infer<typeof RequestValidator>,
-  );
-
-  const cachedResponse = getFromCacheByRequest(contextEntries, internalRequest)?.response;
-
-  if (!cachedResponse) {
-    const errorMsg = outdent`
-        axios cache miss in context '${context}'.
-        Request: '${method} ${url} ${headers} ${JSON.stringify(data)}.
-        Possible Cache Enries:
-        ${
-      contextEntries.map(({ request: x }) => `* ${x.method} ${x.url} ${x.headers} ${JSON.stringify(x.data)}`).join("\n")
-    }
-      `;
-    throw new Error(errorMsg);
-  }
-
-  const response = ResponseValidator.parse(
-    {
-      data: cachedResponse.data,
-      headers: cachedResponse.headers,
-      status: cachedResponse.status,
-    } satisfies z.infer<typeof ResponseValidator>,
-  );
-
-  const cacheItemFromRequest = getFromCacheByRequest(contextEntries, internalRequest);
-
-  if (cacheItemFromContext) {
-    if (!cacheItemFromRequest) {
-      throw new Error(
-        `axios cache miss for request '${method} ${url} ${
-          JSON.stringify(data)
-        }' BUT found a matching hit with the context '${context}': ${method} ${url} ${JSON.stringify(data)}`,
-      );
-    }
-    return Promise.resolve(cacheItemFromContext.response);
-  }
-
-  if (cacheItemFromRequest) {
-    if (context !== null) {
-      return Promise.resolve(cacheItemFromRequest.response);
-    }
-
-    throw new Error(
-      `axios cache miss for context '${context}' BUT found a matching hit without the context: ${method} ${url} ${
-        JSON.stringify(data)
-      }`,
-    );
-  }
-
-  throw new Error(`axios cache miss: ${method} ${url} ${JSON.stringify(data)}`);
 };
 
 const parseMethodArgs = ({ method, args }: { method: z.infer<typeof MethodValidator>; args: unknown[] }) => {
@@ -548,101 +496,11 @@ const axiosConfigValidator = z.object({
   headers: z.record(z.string()).optional(),
 }).strict();
 
-const handler = <Method extends z.infer<typeof MethodValidator>, Args extends Parameters<AxiosInstance[Method]>>(
-  { method, updateMode, realAxios }: HandlerProps<Method>,
-): AxiosInstance[Method] =>
-(...args: Args): ReturnType<AxiosInstance[Method]> => {
-  const { url, data, config, realArgs } = (() => {
-    if (method === "get" || method === "delete" || method === "options") {
-      const [url, config] = args as Parameters<AxiosInstance["get" | "delete" | "options"]>;
-      return { url, config: config ?? {}, data: undefined, realArgs: [url, config] };
-    } else if (method === "post" || method === "put") {
-      const [url, data, config] = args as Parameters<AxiosInstance["post" | "put"]>;
-      return { url, data, config: config ?? {}, realArgs: [url, data, config] };
-    } else {
-      ((x: never) => {})(method);
-      throw new Error(`unknown method: ${method}`);
-    }
-  })();
-
-  const configParseResult = axiosConfigValidator.safeParse(config);
-
-  if (!configParseResult.success) {
-    throw new Error(`only headers supported in axios_snapshot config block`);
-  }
-
-  const headers = configParseResult.data.headers ?? {};
-
-  const context = getCurrentContextText();
-  const contextEntries = cache[context];
-
-  const internalRequest = RequestValidator.parse(
-    { url, data, method, headers } satisfies z.infer<typeof RequestValidator>,
-  );
-
-  const response = await (async () => {
-    if (updateMode) {
-      const realResponse = await realAxios[method].apply(realAxios, [...realArgs] as any) as AxiosResponse;
-      const internalResponse = ResponseValidator.parse(
-        {
-          data: realResponse.data,
-          headers: realResponse.headers,
-          status: realResponse.status,
-        } satisfies z.infer<typeof ResponseValidator>,
-      );
-    } else {
-      const cachedResponse = getFromCacheByRequest(contextEntries, internalRequest)?.response;
-    }
-  })();
-
-  const cacheItemFromRequest = getFromCacheByRequest(contextEntries, internalRequest);
-
-  if (cacheItemFromContext) {
-    if (!cacheItemFromRequest) {
-      throw new Error(
-        `axios cache miss for request '${method} ${url} ${
-          JSON.stringify(data)
-        }' BUT found a matching hit with the context '${context}': ${method} ${url} ${JSON.stringify(data)}`,
-      );
-    }
-    return Promise.resolve(cacheItemFromContext.response);
-  }
-
-  if (cacheItemFromRequest) {
-    if (context !== null) {
-      return Promise.resolve(cacheItemFromRequest.response);
-    }
-
-    throw new Error(
-      `axios cache miss for context '${context}' BUT found a matching hit without the context: ${method} ${url} ${
-        JSON.stringify(data)
-      }`,
-    );
-  }
-
-  throw new Error(`axios cache miss: ${method} ${url} ${JSON.stringify(data)}`);
-};
-
-const getFromCacheByRequest = (
-  items: z.infer<typeof CacheValidator>[string],
-  matcher: z.infer<typeof RequestValidator>,
-) => {
-  const matcherWithoutUndefinedKeys = JSON.parse(JSON.stringify(matcher));
-  return items.find((item) => R.equals(item.request, matcherWithoutUndefinedKeys)) ?? null;
-};
-
 const generateContextName = (ctx: Deno.TestContext, name?: string): string => {
   const prefix = ctx.parent ? `'${generateContextName(ctx.parent)}' -> ` : "";
   const postfix = name ? ` -> '${name}'` : "";
   return prefix + ctx.name + postfix;
 };
-
-// export const createUniqueContextId = async (axiosSnapshotInstanceId: number, contextName: string) => {
-//   const namespace = "ad457a69-b407-403a-8189-eb998a79dd99";
-//   const data = new TextEncoder().encode(`${axiosSnapshotInstanceId}:${contextName}`);
-//   const idInUuidFormat = await uuid.generate(namespace, data);
-//   return idInUuidFormat.replace(/-/g, "");
-// };
 
 const generateRequestHash = (request: z.infer<typeof RequestValidator>) => {
   const requestWithoutInvisibleFields = RequestValidator.parse(request);

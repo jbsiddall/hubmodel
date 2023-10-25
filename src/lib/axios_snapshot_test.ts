@@ -1,11 +1,5 @@
 import { afterAll, beforeAll, describe, it } from "https://deno.land/std@0.201.0/testing/bdd.ts";
-import {
-  CONTEXT_PREFIX,
-  createUniqueContextId,
-  getCurrentContextId,
-  getCurrentContextText,
-  withContext as withAxiosContext,
-} from "./axios_snapshot.ts";
+import { createForTesting } from "./axios_snapshot.ts";
 import { assertEquals, assertMatch, assertRejects, assertThrows } from "https://deno.land/std@0.201.0/assert/mod.ts";
 
 describe("axios snapshot test", () => {
