@@ -88,6 +88,24 @@ interface AssertSameNetworkRequestsOptions {
   expectedRequestHashes?: string[];
 }
 
+class CustomErrorBase extends Error {
+  constructor(message: string) {
+    // 'Error' breaks prototype chain here
+    super(message);
+
+    // restore prototype chain
+    const actualProto = new.target.prototype;
+
+    Object.setPrototypeOf(this, actualProto);
+  }
+}
+
+export class NotInContextError extends CustomErrorBase {
+  constructor() {
+    super(`NotInContextError: not in context`);
+  }
+}
+
 let axiosSnapshotNextFreeId = 1;
 
 interface CreateArgs {
@@ -129,7 +147,7 @@ export const createForTesting = async (createArgs: CreateArgs) => {
 
   const { axios } = createArgs;
   const fileName = createArgs.fileName ?? "./network_snapshot.json";
-  const instanceId = axiosSnapshotNextFreeId++;
+  const snapshotInstanceId = axiosSnapshotNextFreeId++;
 
   /** necessary because code after an `await` might now have a different state, this helps reduce odds someone adds an await somewhere that breaks the transaction */
   const { getState, stateTransaction } = await (async () => {
@@ -167,8 +185,6 @@ export const createForTesting = async (createArgs: CreateArgs) => {
     return { getState, stateTransaction };
   })();
 
-  const uniqueCallstackPrefix = `AS$I${instanceId}$`;
-
   const flushAndClose = async () => {
     await Deno.writeTextFile(fileName, JSON.stringify(CacheValidator.parse(getState().cache), null, 4));
   };
@@ -180,7 +196,7 @@ export const createForTesting = async (createArgs: CreateArgs) => {
     const contextName = generateContextName(ctx, name);
     const errorPrefix = `assertSameNetworkRequests(${contextName}):`;
 
-    const { callstackUniqueTag } = stateTransaction(({ txState, setState }) => {
+    const { contextId } = stateTransaction(({ txState, setState }) => {
       const callstack = new Error().stack;
 
       if (callstack === undefined) {
@@ -189,7 +205,7 @@ export const createForTesting = async (createArgs: CreateArgs) => {
         );
       }
 
-      if (callstack.includes(uniqueCallstackPrefix)) {
+      if (callstack.includes(getCallStackSnapshotId({ snapshotId: snapshotInstanceId }))) {
         throw new Error(`${errorPrefix} cant have nested contexts`);
       }
 
@@ -199,9 +215,9 @@ export const createForTesting = async (createArgs: CreateArgs) => {
         );
       }
 
-      const stacktraceId = txState().nextFreeStacktraceId;
+      const contextId = txState().nextFreeStacktraceId;
 
-      const callstackUniqueTag = `${uniqueCallstackPrefix}C${stacktraceId}`;
+      const callstackUniqueTag = getCallStackContextId({ contextId, snapshotId: snapshotInstanceId });
 
       if (txState().runningContexts[callstackUniqueTag] !== undefined) {
         throw new Error(
@@ -233,34 +249,15 @@ export const createForTesting = async (createArgs: CreateArgs) => {
         },
       }));
 
-      return { callstackUniqueTag };
+      return { contextId };
     });
 
     const wrappedAsyncFn: (f: typeof fn) => Promise<Result> = Function(`
-    return async function ${callstackUniqueTag}() {
+    return async function ${getCallStackContextId({ snapshotId: snapshotInstanceId, contextId })}() {
       const result = await arguments[0]()
       return result
     }
   `)();
-
-    // const isRequestOutOfOrder = indexIntoKnownHashes !== -1 &&
-    //   !runningContext.ignoreOrder &&
-    //   indexIntoKnownHashes !== runningContext.requestsMadeCount;
-    // if (isRequestOutOfOrder) {
-    //   const existingCacheEntries = Object.values(cacheContext.entries).map(({ request: x }) =>
-    //     `* ${x.method} ${x.url} ${x.headers} ${JSON.stringify(x.data)}`
-    //   ).join("\n");
-
-    //   throw new Error(outdent`
-    //     request out of order in context '${runningContext.contextName}'.
-    //     Request: '${method} ${url} ${headers} ${JSON.stringify(data)}.
-    //     expected position ${runningContext.requestsMadeCount} but was ${indexIntoKnownHashes}.
-    //     To Fix: move request hash '${requestHash}' into index ${runningContext.requestsMadeCount}.
-
-    //     Existing Cache Entries:
-    //     ${existingCacheEntries}
-    //   `);
-    // }
 
     let result: Result;
 
@@ -268,7 +265,10 @@ export const createForTesting = async (createArgs: CreateArgs) => {
       stateTransaction(({ setState }) => {
         setState((s) => ({
           ...s,
-          runningContexts: R.omit([callstackUniqueTag], s.runningContexts),
+          runningContexts: R.omit(
+            [getCallStackContextId({ snapshotId: snapshotInstanceId, contextId })],
+            s.runningContexts,
+          ),
         }));
       });
     };
@@ -280,10 +280,12 @@ export const createForTesting = async (createArgs: CreateArgs) => {
       throw e;
     }
 
-    const error = stateTransaction(({ txState, setState }) => {
-      const runningContext = txState().runningContexts[callstackUniqueTag];
+    const error = stateTransaction(({ txState }) => {
+      const callstackContextId = getCallStackContextId({ snapshotId: snapshotInstanceId, contextId });
+
+      const runningContext = txState().runningContexts[callstackContextId];
       if (!runningContext) {
-        return new Error(`cant find running context with ID '${callstackUniqueTag}'`);
+        return new Error(`cant find running context with ID '${callstackContextId}'`);
       }
       const cacheContext = txState().cache[runningContext.contextName];
 
@@ -303,7 +305,7 @@ export const createForTesting = async (createArgs: CreateArgs) => {
           `* ${x.method} ${x.url} ${x.headers} ${JSON.stringify(x.data)}`
         ).join("\n");
 
-        throw new Error(outdent`
+        return new Error(outdent`
         some expected requests wernt made in context '${runningContext.contextName}'.
         missing request hashes${ignoreOrder ? "(ignore order)" : ""}: ${missingRequestHashes.join(", ")}.
         Expected request hashes${ignoreOrder ? "(ignore order)" : ""}: ${expectedRequestHashes.join(", ")}.
@@ -322,7 +324,7 @@ export const createForTesting = async (createArgs: CreateArgs) => {
           `* ${x.method} ${x.url} ${x.headers} ${JSON.stringify(x.data)}`
         ).join("\n");
 
-        throw new Error(outdent`
+        return new Error(outdent`
         some unexpected requests were made in context '${runningContext.contextName}'.
         unexpected request hashes${ignoreOrder ? "(ignore order)" : ""}: ${extraRequestHashes.join(", ")}.
         Expected request hashes${ignoreOrder ? "(ignore order)" : ""}: ${expectedRequestHashes.join(", ")}.
@@ -341,7 +343,7 @@ export const createForTesting = async (createArgs: CreateArgs) => {
           `* ${x.method} ${x.url} ${x.headers} ${JSON.stringify(x.data)}`
         ).join("\n");
 
-        throw new Error(outdent`
+        return new Error(outdent`
         request out of order in context '${runningContext.contextName}'.
         Expected request hashes: ${expectedRequestHashes.join(", ")}.
         Seen request hashes: ${seenRequestHashes.join(", ")}.
@@ -354,7 +356,7 @@ export const createForTesting = async (createArgs: CreateArgs) => {
       `);
       }
 
-      return result;
+      return;
     });
 
     if (error) {
@@ -371,7 +373,9 @@ export const createForTesting = async (createArgs: CreateArgs) => {
     }
 
     const groupId = "ContextId";
-    const regex = new RegExp(`(?<${groupId}>` + escapeRegExp(uniqueCallstackPrefix) + "C\\d+)");
+    const regex = new RegExp(
+      `(?<${groupId}>` + escapeRegExp(getCallStackSnapshotId({ snapshotId: snapshotInstanceId })) + "C\\d+)",
+    );
 
     const stack = new Error().stack;
 
@@ -414,7 +418,7 @@ export const createForTesting = async (createArgs: CreateArgs) => {
         if (!runningContext) {
           throw new Error(`unexpected error: runningContext not found for stackId: ${runningStackId}`);
         }
-        let cacheContext = txState().cache[runningContext.contextName];
+        const cacheContext = txState().cache[runningContext.contextName];
 
         const indexIntoKnownHashes = runningContext.expectedRequestHashes.indexOf(requestHash);
 
@@ -502,6 +506,11 @@ export const createForTesting = async (createArgs: CreateArgs) => {
     axios: axiosProxy,
     flushAndClose,
     assertSameNetworkRequests,
+
+    // testing
+    snapshotInstanceId,
+    getState,
+    getRunningStackId,
   });
 };
 
@@ -536,7 +545,7 @@ const axiosConfigValidator = z.object({
   headers: z.record(z.string()).optional(),
 }).strict();
 
-const generateContextName = (ctx: Deno.TestContext, name?: string): string => {
+export const generateContextName = (ctx: Deno.TestContext, name?: string): string => {
   const prefix = ctx.parent ? `'${generateContextName(ctx.parent)}' -> ` : "";
   const postfix = name ? ` -> '${name}'` : "";
   return prefix + ctx.name + postfix;
@@ -560,4 +569,12 @@ const deepFreeze = <T extends object>(obj: T) => {
     }
   });
   return Object.freeze(obj);
+};
+
+export const getCallStackSnapshotId = ({ snapshotId }: { snapshotId: number }) => {
+  return "AS$I" + snapshotId + "$";
+};
+
+export const getCallStackContextId = ({ snapshotId, contextId }: { snapshotId: number; contextId: number }) => {
+  return getCallStackSnapshotId({ snapshotId }) + "C" + contextId;
 };

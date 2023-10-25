@@ -1,65 +1,146 @@
 import { afterAll, beforeAll, describe, it } from "https://deno.land/std@0.201.0/testing/bdd.ts";
-import { createForTesting } from "./axios_snapshot.ts";
+import {
+  createForTesting,
+  generateContextName,
+  getCallStackContextId,
+  getCallStackSnapshotId,
+  NotInContextError,
+} from "./axios_snapshot.ts";
 import { assertEquals, assertMatch, assertRejects, assertThrows } from "https://deno.land/std@0.201.0/assert/mod.ts";
+import { AxiosInstance } from "../deps.ts";
+import { getTestRunnerCode } from "https://deno.land/x/dnt@0.38.1/lib/test_runner/get_test_runner_code.ts";
+import { assertNotEquals } from "https://deno.land/std@0.201.0/assert/assert_not_equals.ts";
 
 describe("axios snapshot test", () => {
+  describe("generateContextName", () => {
+    it("context names are fully qualified", (ctx) => {
+      assertEquals(
+        generateContextName(ctx),
+        "'axios snapshot test' -> 'generateContextName' -> 'context names are fully qualified'",
+      );
+      assertEquals(
+        generateContextName(ctx, "extra"),
+        "'axios snapshot test' -> 'generateContextName' -> 'context names are fully qualified' -> 'extra'",
+      );
+    });
+  });
+
+  it("getCallStackSnapshotId", () => {
+    assertEquals(getCallStackSnapshotId({ snapshotId: 343 }), "AS$I343");
+  });
+  it("getCallStackContextId - works", () => {
+    assertEquals(getCallStackContextId({ snapshotId: 343, contextId: 456 }), "AS$I343$C456");
+  });
+  it("getCallStackContextId - valid variable name", () => {
+    const identifier = getCallStackContextId({ snapshotId: 343, contextId: 456 });
+    const result = [] as string[];
+    eval(`const ${identifier} = "working"; result.push(${identifier})`);
+    assertEquals(result, ["working"]);
+  });
+
   describe("getCurrentContextId", () => {
-    it("returns context id", () => {
-      const result = (function AxiosSnapshotTag$123() {
-        return getCurrentContextId();
+    it("returns context id", async () => {
+      const { getRunningStackId } = await createForTesting({ axios: {} as AxiosInstance });
+      const result = (function AS$I1$C2() {
+        return getRunningStackId();
       })();
 
-      assertEquals(result, "AxiosSnapshotTag$123");
+      assertEquals(result, "AS$I1$C2");
     });
 
-    it("returns null", () => {
-      assertEquals(getCurrentContextId(), null);
+    it("fails when not in context", async () => {
+      const { getRunningStackId } = await createForTesting({ axios: {} as AxiosInstance });
+      assertThrows(() => getRunningStackId(), NotInContextError);
     });
 
-    it("fails when multiple contextsx", () => {
+    it("fails when multiple contexts", async () => {
+      const { getRunningStackId } = await createForTesting({ axios: {} as AxiosInstance });
       assertThrows(() => {
-        (function AxiosSnapshotTag$123() {
-          (function AxiosSnapshotTag$456() {
-            getCurrentContextId();
+        (function AS$I1$C1() {
+          (function AS$I1$C1() {
+            getRunningStackId();
+          })();
+        })();
+      });
+
+      assertThrows(() => {
+        (function AS$I1$C1() {
+          (function AS$I1$C2() {
+            getRunningStackId();
           })();
         })();
       });
     });
-  });
 
-  describe("createUniqueContextId", () => {
-    it("can be part of a function name", async () => {
-      const id = await createUniqueContextId("teststring");
-      assertMatch(id, /[a-z0-9]+/);
+    it("ignores other instance contexts", async () => {
+      const { getRunningStackId } = await createForTesting({ axios: {} as AxiosInstance });
+
+      const result = (function AS$I2$C1() {
+        return (function AS$I1$C1() {
+          return getRunningStackId();
+        })();
+      })();
+
+      assertEquals(result, "AS$I1$C1");
+
+      const result2 = (function AS$I1$C1() {
+        return (function AS$I2$C1() {
+          return getRunningStackId();
+        })();
+      })();
+
+      assertEquals(result2, "AS$I1$C1");
     });
   });
 
-  describe("withContext", () => {
+  describe("assertSameNetworkRequests", () => {
     it("returns result from callback", async (ctx) => {
-      const result = await withAxiosContext(ctx.name, () => Promise.resolve("myresullt"));
+      const { assertSameNetworkRequests } = await createForTesting({ axios: {} as AxiosInstance });
+      const result = await assertSameNetworkRequests({ ctx }, () => Promise.resolve("myresullt" as const));
       assertEquals(result, "myresullt");
     });
 
     it("sets context ID in callstack", async (ctx) => {
-      assertEquals(getCurrentContextId(), null);
-      const result = await withAxiosContext(ctx.name, () => Promise.resolve(getCurrentContextId()));
-      assertEquals(typeof result === "string" && result.startsWith(CONTEXT_PREFIX), true);
-      assertEquals(getCurrentContextId(), null);
+      const { assertSameNetworkRequests, getRunningStackId } = await createForTesting({ axios: {} as AxiosInstance });
+      const result = await assertSameNetworkRequests({ ctx }, () => Promise.resolve(getRunningStackId()));
+      assertEquals(result.startsWith(getCallStackSnapshotId({ snapshotId: 1 })), true);
     });
 
-    it("works when used multiple times", async (ctx) => {
-      await withAxiosContext(`${ctx.name}-1`, async () => {});
-      await withAxiosContext(`${ctx.name}-2`, async () => {});
+    it("context id always unique", async (ctx) => {
+      const { assertSameNetworkRequests, getRunningStackId } = await createForTesting({ axios: {} as AxiosInstance });
+      const id1 = await assertSameNetworkRequests({ ctx }, () => Promise.resolve(getRunningStackId()));
+      const id2 = await assertSameNetworkRequests({ ctx }, () => Promise.resolve(getRunningStackId()));
+      assertNotEquals(id1, id2);
     });
 
-    it("errors when text is used in multiple places", async (ctx) => {
-      await withAxiosContext(ctx.name, async () => {});
-      await assertRejects(() => withAxiosContext(ctx.name, async () => {}));
+    it("Snapshot instances always have unique IDs", async () => {
+      const { snapshotInstanceId: s1 } = await createForTesting({ axios: {} as AxiosInstance });
+      const { snapshotInstanceId: s2 } = await createForTesting({ axios: {} as AxiosInstance });
+      assertNotEquals(s1, s2);
     });
 
-    it("remembers context text", async (ctx) => {
-      const result = await withAxiosContext(ctx.name, () => Promise.resolve(getCurrentContextText()));
-      assertEquals(result, ctx.name);
+    it("cleans up state after context ends", async (ctx) => {
+      const { assertSameNetworkRequests, getState } = await createForTesting({ axios: {} as AxiosInstance });
+      await assertSameNetworkRequests({ ctx }, () => Promise.resolve({}));
+      assertEquals(getState().runningContexts, {});
+    });
+
+    it("adds cache entry even when no requests made", async (ctx) => {
+      const { assertSameNetworkRequests, getState } = await createForTesting({ axios: {} as AxiosInstance });
+      await assertSameNetworkRequests({ ctx }, () => Promise.resolve({}));
+      assertEquals(Object.values(getState().cache), []);
+    });
+
+    it("errors when same context is used in multiple times", async (ctx) => {
+      const { assertSameNetworkRequests } = await createForTesting({ axios: {} as AxiosInstance });
+      await assertSameNetworkRequests({ ctx }, async () => {});
+      await assertRejects(() => assertSameNetworkRequests({ ctx }, async () => Promise.resolve({})));
+    });
+
+    it("same context can be used multiple times if an additional name provided", async (ctx) => {
+      const { assertSameNetworkRequests } = await createForTesting({ axios: {} as AxiosInstance });
+      await assertSameNetworkRequests({ ctx }, async () => {});
+      await assertSameNetworkRequests({ ctx, name: "second usage" }, async () => {});
     });
   });
 });
