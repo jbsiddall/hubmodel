@@ -225,6 +225,12 @@ export const createForTesting = async (createArgs: CreateArgs) => {
             seenRequestHashes: [],
           },
         },
+        cache: {
+          ...s.cache,
+          [contextName]: s.cache[contextName] ?? {
+            entries: {},
+          },
+        },
       }));
 
       return { callstackUniqueTag };
@@ -274,32 +280,87 @@ export const createForTesting = async (createArgs: CreateArgs) => {
       throw e;
     }
 
-    stateTransaction(({ txState, setState }) => {
+    const error = stateTransaction(({ txState, setState }) => {
       const runningContext = txState().runningContexts[callstackUniqueTag];
       if (!runningContext) {
-        throw new Error(`cant find running context with ID '${callstackUniqueTag}'`);
+        return new Error(`cant find running context with ID '${callstackUniqueTag}'`);
       }
+      const cacheContext = txState().cache[runningContext.contextName];
 
       const { expectedRequestHashes, seenRequestHashes } = runningContext;
       const isRequestListAsExpected = R.equals(runningContext.seenRequestHashes, runningContext.expectedRequestHashes);
-
       const missingRequestHashes = expectedRequestHashes.filter((x) => !seenRequestHashes.includes(x));
 
-      //   if (!ignoreOrder && )
-      //   const existingCacheEntries = Object.values(cacheContext.entries).map(({ request: x }) =>
-      //     `* ${x.method} ${x.url} ${x.headers} ${JSON.stringify(x.data)}`
-      //   ).join("\n");
+      /* extraRequestHashes should be empty since we throw an error but handling just in case we change semantics later */
+      const extraRequestHashes = seenRequestHashes.filter((x) => !expectedRequestHashes.includes(x));
 
-      //   throw new Error(outdent`
-      //   request out of order in context '${runningContext.contextName}'.
-      //   Request: '${method} ${url} ${headers} ${JSON.stringify(data)}.
-      //   expected position ${runningContext.requestsMadeCount} but was ${indexIntoKnownHashes}.
-      //   To Fix: move request hash '${requestHash}' into index ${runningContext.requestsMadeCount}.
+      if (isRequestListAsExpected) {
+        return;
+      }
 
-      //   Existing Cache Entries:
-      //   ${existingCacheEntries}
-      // `);
+      if (missingRequestHashes.length > 0) {
+        const existingCacheEntries = Object.values(cacheContext.entries).map(({ request: x }) =>
+          `* ${x.method} ${x.url} ${x.headers} ${JSON.stringify(x.data)}`
+        ).join("\n");
+
+        throw new Error(outdent`
+        some expected requests wernt made in context '${runningContext.contextName}'.
+        missing request hashes${ignoreOrder ? "(ignore order)" : ""}: ${missingRequestHashes.join(", ")}.
+        Expected request hashes${ignoreOrder ? "(ignore order)" : ""}: ${expectedRequestHashes.join(", ")}.
+        Seen request hashes(In Order): ${seenRequestHashes.join(", ")}.
+        To Fix: move copy the actual request hashes into expected: \`[${
+          seenRequestHashes.map((x) => `"${x}"`).join(", ")
+        }]\`.
+
+        Existing Cache Entries for Context:
+        ${existingCacheEntries}
+      `);
+      }
+
+      if (extraRequestHashes.length > 0) {
+        const existingCacheEntries = Object.values(cacheContext.entries).map(({ request: x }) =>
+          `* ${x.method} ${x.url} ${x.headers} ${JSON.stringify(x.data)}`
+        ).join("\n");
+
+        throw new Error(outdent`
+        some unexpected requests were made in context '${runningContext.contextName}'.
+        unexpected request hashes${ignoreOrder ? "(ignore order)" : ""}: ${extraRequestHashes.join(", ")}.
+        Expected request hashes${ignoreOrder ? "(ignore order)" : ""}: ${expectedRequestHashes.join(", ")}.
+        Seen request hashes(In Order): ${seenRequestHashes.join(", ")}.
+        To Fix: add the unexpected request hashes into the expected request hashes: \`[${
+          extraRequestHashes.map((x) => `"${x}"`).join(", ")
+        }]\`.
+
+        Existing Cache Entries for Context:
+        ${existingCacheEntries}
+      `);
+      }
+
+      if (!ignoreOrder) {
+        const existingCacheEntries = Object.values(cacheContext.entries).map(({ request: x }) =>
+          `* ${x.method} ${x.url} ${x.headers} ${JSON.stringify(x.data)}`
+        ).join("\n");
+
+        throw new Error(outdent`
+        request out of order in context '${runningContext.contextName}'.
+        Expected request hashes: ${expectedRequestHashes.join(", ")}.
+        Seen request hashes: ${seenRequestHashes.join(", ")}.
+        To Fix: copy the actual request hashes into expected: \`[${
+          seenRequestHashes.map((x) => `"${x}"`).join(", ")
+        }]\`.
+
+        Existing Cache Entries for Context:
+        ${existingCacheEntries}
+      `);
+      }
+
+      return result;
     });
+
+    if (error) {
+      cleanupRunningContext();
+      throw new Error(undefined, { cause: error });
+    }
 
     return result;
   };
@@ -353,28 +414,7 @@ export const createForTesting = async (createArgs: CreateArgs) => {
         if (!runningContext) {
           throw new Error(`unexpected error: runningContext not found for stackId: ${runningStackId}`);
         }
-        const getCacheContext = () => {
-          let cacheContext = txState().cache[runningContext.contextName];
-          if (cacheContext) {
-            return cacheContext;
-          }
-          setState((s) => ({
-            ...s,
-            cache: {
-              ...s.cache,
-              [runningContext.contextName]: {
-                entries: {},
-              },
-            },
-          }));
-          cacheContext = txState().cache[runningContext.contextName];
-          if (cacheContext) {
-            return cacheContext;
-          }
-          throw new Error(`unexpected error: cacheContext not found for contextName: ${runningContext.contextName}`);
-        };
-
-        const cacheContext = getCacheContext();
+        let cacheContext = txState().cache[runningContext.contextName];
 
         const indexIntoKnownHashes = runningContext.expectedRequestHashes.indexOf(requestHash);
 

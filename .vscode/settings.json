@@ -3,5 +3,6 @@
   "deno.lint": true,
   "deno.unstable": true,
   "deno.cacheOnSave": true,
-  "deno.maxTsServerMemory": 10000
+  "deno.maxTsServerMemory": 10000,
+  "deno.internalDebug": true
 }
