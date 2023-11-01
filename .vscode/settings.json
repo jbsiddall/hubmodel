@@ -4,5 +4,8 @@
   "deno.unstable": true,
   "deno.cacheOnSave": true,
   "deno.maxTsServerMemory": 10000,
-  "deno.internalDebug": true
+  "deno.internalDebug": true,
+  "deno.disablePaths": [
+    "./npm"
+  ]
 }

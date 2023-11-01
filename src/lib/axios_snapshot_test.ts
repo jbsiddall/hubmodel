@@ -6,9 +6,8 @@ import {
   getCallStackSnapshotId,
   NotInContextError,
 } from "./axios_snapshot.ts";
-import { assertEquals, assertMatch, assertRejects, assertThrows } from "https://deno.land/std@0.201.0/assert/mod.ts";
-import { AxiosInstance } from "../deps.ts";
-import { getTestRunnerCode } from "https://deno.land/x/dnt@0.38.1/lib/test_runner/get_test_runner_code.ts";
+import { assertEquals, assertRejects, assertThrows } from "https://deno.land/std@0.201.0/assert/mod.ts";
+import { axios, AxiosInstance } from "../deps.ts";
 import { assertNotEquals } from "https://deno.land/std@0.201.0/assert/assert_not_equals.ts";
 
 describe("axios snapshot test", () => {
@@ -26,16 +25,11 @@ describe("axios snapshot test", () => {
   });
 
   it("getCallStackSnapshotId", () => {
-    assertEquals(getCallStackSnapshotId({ snapshotId: 343 }), "AS$I343");
+    assertEquals(getCallStackSnapshotId({ snapshotId: 343 }), "AS$I343$");
   });
+
   it("getCallStackContextId - works", () => {
     assertEquals(getCallStackContextId({ snapshotId: 343, contextId: 456 }), "AS$I343$C456");
-  });
-  it("getCallStackContextId - valid variable name", () => {
-    const identifier = getCallStackContextId({ snapshotId: 343, contextId: 456 });
-    const result = [] as string[];
-    eval(`const ${identifier} = "working"; result.push(${identifier})`);
-    assertEquals(result, ["working"]);
   });
 
   describe("getCurrentContextId", () => {

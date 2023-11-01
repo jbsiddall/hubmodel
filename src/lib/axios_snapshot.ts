@@ -1,35 +1,40 @@
-import outdent from "../../npm/esm/deps/deno.land/x/outdent@v0.8.0/mod.js";
-import { axios, AxiosRequestConfig } from "../deps.ts";
-import { AxiosInstance, AxiosResponse, R, z } from "./deps.ts";
+import outdent from "https://deno.land/x/outdent@v0.8.0/mod.ts";
+import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "../deps.ts";
+import { R, z } from "./deps.ts";
 import { crypto } from "https://deno.land/std@0.204.0/crypto/mod.ts";
 import { encodeBase64 } from "https://deno.land/std@0.204.0/encoding/base64.ts";
 
 const MethodValidator = z.enum(["post", "get", "delete", "options", "put"]);
 
-const RequestValidator = z.object({
-  url: z.string(),
-  data: z.unknown(),
-  headers: z.record(z.string()),
-  method: MethodValidator,
-});
+type HeaderInputValueValidatorType = string | string[] | boolean | number | null | undefined | AxiosHeadersType;
 
-const HeaderInputValueValidator = z.union([
+interface AxiosHeadersType {
+  [key: string]: HeaderInputValueValidatorType;
+}
+
+const HeaderInputValueValidator: z.ZodType<HeaderInputValueValidatorType> = z.union([
   z.string(),
   z.string().array(),
   z.boolean(),
   z.number(),
   z.null(),
   z.undefined(),
-  z.instanceof(axios.AxiosHeaders),
+  z.lazy(() => AxiosHeadersValidator),
 ]);
+
+const HeadersValidator = z.record(HeaderInputValueValidator);
+const AxiosHeadersValidator = HeadersValidator;
+
+const RequestValidator = z.object({
+  url: z.string(),
+  data: z.unknown(),
+  headers: z.record(HeaderInputValueValidator),
+  method: MethodValidator,
+});
 
 const ResponseValidator = z.object({
   data: z.unknown(),
-  headers: z.record(HeaderInputValueValidator).or(z.instanceof(axios.AxiosHeaders)).transform((headersOrInst) => {
-    const headers: Record<string, unknown> = headersOrInst instanceof axios.AxiosHeaders
-      ? { ...headersOrInst }
-      : headersOrInst;
-
+  headers: HeadersValidator.transform((headers) => {
     return Object.entries(headers).reduce(
       (acc, [k, uncheckedV]) => {
         const vParsed = HeaderInputValueValidator.safeParse(uncheckedV);
@@ -40,21 +45,26 @@ const ResponseValidator = z.object({
 
         const v = vParsed.data;
 
-        if (v instanceof axios.AxiosHeaders) {
-          console.warn(`failed to parse nested AxiosHeaders '${String(v)}' for header '${k}'.`, new Error().stack);
-          return acc;
-        }
-
         if (v === null || v === undefined) {
           return acc;
         }
         if (typeof v === "number" || typeof v === "boolean") {
           return { ...acc, [k]: String(v) };
         }
+        if (typeof v === "string") {
+          return { ...acc, [k]: v };
+        }
         if (Array.isArray(v)) {
           return { ...acc, [k]: v.join(",") };
         }
-        return { ...acc, [k]: v satisfies string };
+
+        const axiosHeadersValue = v satisfies Record<string, HeaderInputValueValidatorType>;
+
+        console.warn(
+          `failed to parse nested AxiosHeaders '${String(axiosHeadersValue)}' for header '${k}'.`,
+          new Error().stack,
+        );
+        return acc;
       },
       {} as Record<string, string>,
     );
@@ -101,27 +111,33 @@ class CustomErrorBase extends Error {
 }
 
 export class NotInContextError extends CustomErrorBase {
-  constructor() {
-    super(`NotInContextError: not in context`);
+  readonly snapshotId: number;
+
+  constructor({ snapshotId }: { snapshotId: number }) {
+    super(`NotInContextError: not in context for snapshot ID ${snapshotId}`);
+    this.snapshotId = snapshotId;
   }
 }
 
-let axiosSnapshotNextFreeId = 1;
+const takenSnapshotIds: Set<number> = new Set();
 
 interface CreateArgs {
+  initialCache?: z.infer<typeof CacheValidator> | null;
   axios: AxiosInstance;
-  fileName?: string;
+  snapshotInstanceId?: number;
 }
 
-export const create = async (createArgs: CreateArgs) => {
-  const real = await createForTesting(createArgs);
+export const create = (createArgs: CreateArgs) => {
+  const real = createForTesting(createArgs);
   const keys: (keyof typeof real)[] = [
-    "flushAndClose",
+    "assertSameNetworkRequests",
+    "getCache",
+    "axios",
   ];
   return Object.freeze(R.pick(keys, real));
 };
 
-export const createForTesting = async (createArgs: CreateArgs) => {
+export const createForTesting = (createArgs: CreateArgs) => {
   interface State {
     cache: z.infer<typeof CacheValidator>;
 
@@ -133,25 +149,17 @@ export const createForTesting = async (createArgs: CreateArgs) => {
     nextFreeStacktraceId: number;
   }
 
-  const initState = async (): Promise<State> => {
-    const rawData = JSON.parse(await Deno.readTextFile(fileName));
-    const cache = CacheValidator.parse(rawData);
+  const { axios: realAxios, initialCache } = createArgs;
+  const snapshotInstanceId = axiosSnapshotNextFreeId++;
 
-    return deepFreeze({
-      cache,
+  /** necessary because code after an `await` might now have a different state, this helps reduce odds someone adds an await somewhere that breaks the transaction */
+  const { getState, stateTransaction } = (() => {
+    let _state: Readonly<State> = deepFreeze({
+      cache: initialCache ?? {},
       contextIdToCallstack: {},
       runningContexts: {},
       nextFreeStacktraceId: 0,
     });
-  };
-
-  const { axios } = createArgs;
-  const fileName = createArgs.fileName ?? "./network_snapshot.json";
-  const snapshotInstanceId = axiosSnapshotNextFreeId++;
-
-  /** necessary because code after an `await` might now have a different state, this helps reduce odds someone adds an await somewhere that breaks the transaction */
-  const { getState, stateTransaction } = await (async () => {
-    let _state: Readonly<State> = await initState();
 
     interface StateTransactionCallbackArgs {
       txState: () => Readonly<State>;
@@ -184,10 +192,6 @@ export const createForTesting = async (createArgs: CreateArgs) => {
 
     return { getState, stateTransaction };
   })();
-
-  const flushAndClose = async () => {
-    await Deno.writeTextFile(fileName, JSON.stringify(CacheValidator.parse(getState().cache), null, 4));
-  };
 
   const assertSameNetworkRequests = async <Result>(
     { ctx, ignoreOrder, expectedRequestHashes, name }: AssertSameNetworkRequestsOptions,
@@ -252,29 +256,28 @@ export const createForTesting = async (createArgs: CreateArgs) => {
       return { contextId };
     });
 
-    const wrappedAsyncFn: (f: typeof fn) => Promise<Result> = Function(`
-    return async function ${getCallStackContextId({ snapshotId: snapshotInstanceId, contextId })}() {
-      const result = await arguments[0]()
-      return result
-    }
-  `)();
+    const renamedWrappedFunction = async () => {
+      return await fn();
+    };
 
-    let result: Result;
+    const callstackIdentifier = getCallStackContextId({ snapshotId: snapshotInstanceId, contextId });
+    Object.defineProperty(renamedWrappedFunction, "name", { value: callstackIdentifier });
 
     const cleanupRunningContext = () => {
       stateTransaction(({ setState }) => {
         setState((s) => ({
           ...s,
           runningContexts: R.omit(
-            [getCallStackContextId({ snapshotId: snapshotInstanceId, contextId })],
+            [callstackIdentifier],
             s.runningContexts,
           ),
         }));
       });
     };
 
+    let result: Result;
     try {
-      result = await wrappedAsyncFn(fn);
+      result = await renamedWrappedFunction();
     } catch (e) {
       cleanupRunningContext();
       throw e;
@@ -394,7 +397,7 @@ export const createForTesting = async (createArgs: CreateArgs) => {
 
     const contextId = stack.match(regex)?.groups?.[groupId] ?? null;
     if (!contextId) {
-      throw new Error("unable to detect any context");
+      throw new NotInContextError({ snapshotId: snapshotInstanceId });
     }
     return contextId;
   };
@@ -458,7 +461,7 @@ export const createForTesting = async (createArgs: CreateArgs) => {
         return ResponseValidator.parse(cacheItem.response);
       }
 
-      const realResponse = await axios[method].apply(axios, [...realArgs] as any) as AxiosResponse;
+      const realResponse = await realAxios[method].apply(realAxios, [...realArgs] as any) as AxiosResponse;
 
       // dont return real response for consistency when retrieving from cache vs real API
       const response = ResponseValidator.parse(
@@ -494,7 +497,7 @@ export const createForTesting = async (createArgs: CreateArgs) => {
   };
 
   const axiosProxy = Object.freeze({
-    defaults: axios.defaults,
+    defaults: { headers: {} },
     post: createHandler("post"),
     put: createHandler("put"),
     get: createHandler("get"),
@@ -504,8 +507,8 @@ export const createForTesting = async (createArgs: CreateArgs) => {
 
   return Object.freeze({
     axios: axiosProxy,
-    flushAndClose,
     assertSameNetworkRequests,
+    getCache: () => getState().cache,
 
     // testing
     snapshotInstanceId,
@@ -546,9 +549,9 @@ const axiosConfigValidator = z.object({
 }).strict();
 
 export const generateContextName = (ctx: Deno.TestContext, name?: string): string => {
-  const prefix = ctx.parent ? `'${generateContextName(ctx.parent)}' -> ` : "";
+  const prefix = ctx.parent ? `${generateContextName(ctx.parent)} -> ` : "";
   const postfix = name ? ` -> '${name}'` : "";
-  return prefix + ctx.name + postfix;
+  return prefix + `'${ctx.name}'` + postfix;
 };
 
 const generateRequestHash = (request: z.infer<typeof RequestValidator>) => {
