@@ -111,23 +111,24 @@ class CustomErrorBase extends Error {
 }
 
 export class NotInContextError extends CustomErrorBase {
-  readonly snapshotId: number;
+  readonly snapshotId: string;
 
-  constructor({ snapshotId }: { snapshotId: number }) {
+  constructor({ snapshotId }: { snapshotId: string }) {
     super(`NotInContextError: not in context for snapshot ID ${snapshotId}`);
     this.snapshotId = snapshotId;
   }
 }
 
-const takenSnapshotIds: Set<number> = new Set();
+const takenSnapshotIds: Set<string> = new Set();
 
 interface CreateArgs {
   initialCache?: z.infer<typeof CacheValidator> | null;
   axios: AxiosInstance;
-  snapshotInstanceId?: number;
+  snapshotInstanceId?: string;
+  allowDuplicateSnapshotIds?: true;
 }
 
-export const create = (createArgs: CreateArgs) => {
+export const create = (createArgs: Omit<CreateArgs,'allowDuplicateSnapshotIds'>) => {
   const real = createForTesting(createArgs);
   const keys: (keyof typeof real)[] = [
     "assertSameNetworkRequests",
@@ -136,6 +137,14 @@ export const create = (createArgs: CreateArgs) => {
   ];
   return Object.freeze(R.pick(keys, real));
 };
+
+const createSnapshotInstanceId = () => {
+  const hashSeed = new Error().stack
+  if (!hashSeed) {
+    throw new Error('unable to get error stacktrace')
+  }
+  return hashString(hashSeed)
+}
 
 export const createForTesting = (createArgs: CreateArgs) => {
   interface State {
@@ -150,7 +159,13 @@ export const createForTesting = (createArgs: CreateArgs) => {
   }
 
   const { axios: realAxios, initialCache } = createArgs;
-  const snapshotInstanceId = axiosSnapshotNextFreeId++;
+  const snapshotInstanceId = createArgs.snapshotInstanceId ?? createSnapshotInstanceId()
+
+
+  if (takenSnapshotIds.has(snapshotInstanceId) && !createArgs.allowDuplicateSnapshotIds) {
+    throw new Error(`AxiosSnapshot ID already taken '${snapshotInstanceId}'. consider providing a unique ID via "${'snapshotInstanceId' satisfies keyof CreateArgs}" arg`)
+  }
+  takenSnapshotIds.add(snapshotInstanceId)
 
   /** necessary because code after an `await` might now have a different state, this helps reduce odds someone adds an await somewhere that breaks the transaction */
   const { getState, stateTransaction } = (() => {
@@ -198,7 +213,9 @@ export const createForTesting = (createArgs: CreateArgs) => {
     fn: () => Promise<Result>,
   ): Promise<Result> => {
     const contextName = generateContextName(ctx, name);
-    const errorPrefix = `assertSameNetworkRequests(${contextName}):`;
+
+    const functionName = "assertSameNetworkRequests"
+    const errorPrefix = `${functionName}(${contextName}):`;
 
     const { contextId } = stateTransaction(({ txState, setState }) => {
       const callstack = new Error().stack;
@@ -215,7 +232,10 @@ export const createForTesting = (createArgs: CreateArgs) => {
 
       if (contextName in txState().contextIdToCallstack && txState().contextIdToCallstack[contextName] !== callstack) {
         throw new Error(
-          `${errorPrefix} called with same name from multiple locations.\n. This is bad because the text needs to be unique.`,
+          outdent`
+            ${errorPrefix} called multiple times from within the same test without providing a unique 'name' arg.
+            to fix: when doing multiple calls to '${functionName}' within the same test, provide a unique 'name' arg to each call within the same test, provide a unique 'name' arg to each call.
+          `,
         );
       }
 
@@ -362,8 +382,8 @@ export const createForTesting = (createArgs: CreateArgs) => {
       return;
     });
 
+    cleanupRunningContext();
     if (error) {
-      cleanupRunningContext();
       throw new Error(undefined, { cause: error });
     }
 
@@ -557,27 +577,33 @@ export const generateContextName = (ctx: Deno.TestContext, name?: string): strin
 const generateRequestHash = (request: z.infer<typeof RequestValidator>) => {
   const requestWithoutInvisibleFields = RequestValidator.parse(request);
   return encodeBase64(
-    crypto.subtle.digestSync("SHA-1", new TextEncoder().encode(JSON.stringify(requestWithoutInvisibleFields))),
+    hashString(JSON.stringify(requestWithoutInvisibleFields))
   );
 };
 
-const deepFreeze = <T extends object>(obj: T) => {
-  R.keys(obj).forEach((prop) => {
+const hashString = (text: string) => {
+  return encodeBase64(
+    crypto.subtle.digestSync("SHA-1", new TextEncoder().encode(text))
+  );
+}
+
+const deepFreeze = <T extends Record<string, any>>(obj: T) => {
+  Object.keys(obj).forEach(prop => {
     const val = obj[prop];
     if (
       typeof val === "object" &&
       !Object.isFrozen(val)
     ) {
-      deepFreeze(val as object);
+      deepFreeze(val);
     }
   });
   return Object.freeze(obj);
 };
 
-export const getCallStackSnapshotId = ({ snapshotId }: { snapshotId: number }) => {
+export const getCallStackSnapshotId = ({ snapshotId }: { snapshotId: string }) => {
   return "AS$I" + snapshotId + "$";
 };
 
-export const getCallStackContextId = ({ snapshotId, contextId }: { snapshotId: number; contextId: number }) => {
+export const getCallStackContextId = ({ snapshotId, contextId }: { snapshotId: string; contextId: number }) => {
   return getCallStackSnapshotId({ snapshotId }) + "C" + contextId;
 };
