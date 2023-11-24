@@ -1,11 +1,5 @@
-import { __META__ } from "../generated.ts";
 import { AxiosInstance, z } from "./deps.ts";
-
-export type META = typeof __META__;
-export type COLLECTION_NAMES = keyof META["collectionProperties"];
-export type ZOD_COLLECTIONS = {
-  [K in COLLECTION_NAMES]: z.infer<META["collectionProperties"][K]>;
-};
+import { CollectionValidatorBaseV2, WhereValidatorBase } from "./where.ts";
 
 /**
  * ensures that a sub type doesn't have any extra keys not in the superclass
@@ -14,27 +8,20 @@ export type ZOD_COLLECTIONS = {
  * however because we have a type that extends this, then the type can have extra keys and still technically extend it so there's
  * no errors. we want errors when extra keys are added that there's not a property for.
  */
-export type NoExtraKeys<Super extends object, Sub extends object> = {
+export type NoExtraKeys<Super extends object, Sub extends Super> = {
   [K in keyof Sub as K extends keyof Super ? K : never]: Sub[K];
 };
 
-export type SelectArg<Name extends COLLECTION_NAMES> = {
-  [K in keyof ZOD_COLLECTIONS[Name]]?: true;
-};
-export type DefaultSelectArg<Name extends COLLECTION_NAMES> = {
-  [K in keyof ZOD_COLLECTIONS[Name]]: true;
-};
+// export type SelectArg<Name extends COLLECTION_NAMES> = {
+//   [K in keyof ZOD_COLLECTIONS[Name]]?: true;
+// };
 
 export interface CollectionInstance<
-  Name extends COLLECTION_NAMES,
-  Properties extends SelectArg<Name>,
+  Col extends GeneratedCollection,
+  Properties extends keyof z.infer<Col["InstanceValidator"]>,
 > {
   id: string;
-  properties: {
-    [
-      K in keyof ZOD_COLLECTIONS[Name] as Properties[K] extends true ? K : never
-    ]: ZOD_COLLECTIONS[Name][K];
-  };
+  properties: Pick<Col["InstanceValidator"], Properties>;
   createdAt: Date;
   updatedAt: Date;
   archived: boolean;
@@ -52,7 +39,40 @@ export interface CollectionInstance<
 //     findMany: FindMany<Name>
 // }
 
-export interface CollHelperInternalArgs<Name extends COLLECTION_NAMES> {
+export type CollectionName<Schema extends GeneratedHubspotSchema> = keyof Schema["collections"] & string;
+
+export interface CollHelperInternalArgs<Schema extends GeneratedHubspotSchema, Name extends CollectionName<Schema>> {
   collectionName: Name;
   client: AxiosInstance;
+  schema: Schema;
 }
+
+type SelectArgHelper = z.ZodUnion<readonly [z.ZodLiteral<string>, ...z.ZodLiteral<string>[]]>;
+// deno-lint-ignore no-empty-interface
+export interface GeneratedSelectArgValidator extends z.ZodRecord<SelectArgHelper, z.ZodLiteral<true>> {}
+
+export interface GeneratedCollection {
+  SelectArgValidator: GeneratedSelectArgValidator;
+  WhereArgValidator: WhereValidatorBase;
+  InstanceValidator: z.ZodObject<any>;
+}
+
+export const verifyCollection = <const C extends GeneratedCollection>(col: C): C => col;
+
+export interface GeneratedHubspotSchema {
+  collections: Record<string, GeneratedCollection>;
+}
+
+export const verifySchema = <const S extends GeneratedHubspotSchema>(schema: S): S => schema;
+
+export const HubspotFieldTypeValidator = z.union([
+  z.literal("string"),
+  z.literal("datetime"),
+  z.literal("date"),
+  z.literal("phone_number"),
+  z.literal("bool"),
+  z.literal("number"),
+  z.literal("enumeration"),
+]);
+
+export type HubspotFieldType = z.infer<typeof HubspotFieldTypeValidator>;
