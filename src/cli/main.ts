@@ -8,6 +8,7 @@ import { HubspotFieldType, HubspotFieldTypeValidator } from "../lib/common.ts";
 import { parse as parseArgs } from "https://deno.land/std@0.202.0/flags/mod.ts";
 import { parse as parseYaml, stringify as stringifyYaml } from "https://deno.land/std@0.202.0/yaml/mod.ts";
 import { FIELD_VALIDATORS } from "../lib/where.ts";
+import { lodash } from "../deps.ts";
 
 const folderToWriteTo = join(
   fromFileUrl(import.meta.url),
@@ -28,7 +29,7 @@ const relativePath = (fromPath: string, toPath: string) => {
   const fromPathParts = process(fromPath);
   const toPathParts = process(toPath);
 
-  const mraParts = R.zip(fromPathParts, toPathParts).reduce(
+  const mraParts = lodash.zip(fromPathParts, toPathParts).reduce(
     ({ mra, done }, [a, b]) => {
       if (done || a !== b) {
         return {

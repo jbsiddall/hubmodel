@@ -1,6 +1,7 @@
-import { R, z } from "../deps.ts";
+import { z } from "../deps.ts";
+import * as util from "./util.ts"
 import { Filter, FilterGroup } from "../rest.ts";
-import { GeneratedCollection, HubspotFieldType } from "./common.ts";
+import { HubspotFieldType } from "./common.ts";
 
 const createFieldClause = <G extends z.ZodType>(fieldType: G) =>
   z.object({
@@ -52,7 +53,7 @@ export type CollectionValidatorBaseV2 = WhereValidatorBase extends z.ZodType<inf
 
 export const whereClauseToFilterGroups = (where: CollectionValidatorBaseV2): FilterGroup[] => {
   const x = where["OR"];
-  const keys = where === undefined ? [] : R.keys(where);
+  const keys = where === undefined ? [] : util.keys(where);
   const filters: Filter[] = keys.reduce(
     (partialResults, key) => {
       if (typeof key === "symbol" || typeof key === "number") {

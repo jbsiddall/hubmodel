@@ -2,7 +2,7 @@
   "tasks": {
     "buildReadme": "deno run --allow-all ./scripts/build_readme.ts ./src/docs/README_SOURCE.md ./docs/README.md",
     "check": "deno check ./src/cli/main.ts ./src/lib/client.ts $(find ./src/docs/example -type f) && deno task test",
-    "test": "deno test --allow-read --coverage=./coverage",
+    "test": "deno test --allow-read --allow-env --allow-net=localhost --fail-fast=1 --coverage=./coverage",
     "test:coverage": "deno coverage ./foo --include='^file://.*/hubspot-orm/src' | grep cover",
     "test:update": "deno task test --allow-write --allow-env --allow-net=api.hubapi.com -- --update",
     "format": "deno fmt src docs",

@@ -1,6 +1,6 @@
 import outdent from "https://deno.land/x/outdent@v0.8.0/mod.ts";
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "../deps.ts";
-import { R, z } from "./deps.ts";
+import { isEqual, omit, z } from "./deps.ts";
 import { crypto } from "https://deno.land/std@0.204.0/crypto/mod.ts";
 import { encodeBase64 } from "https://deno.land/std@0.204.0/encoding/base64.ts";
 
@@ -129,13 +129,13 @@ interface CreateArgs {
 }
 
 export const create = (createArgs: Omit<CreateArgs,'allowDuplicateSnapshotIds'>) => {
-  const real = createForTesting(createArgs);
-  const keys: (keyof typeof real)[] = [
-    "assertSameNetworkRequests",
-    "getCache",
-    "axios",
-  ];
-  return Object.freeze(R.pick(keys, real));
+  const {assertSameNetworkRequests, getCache, axios} = createForTesting(createArgs);
+
+  return Object.freeze({
+    assertSameNetworkRequests,
+    getCache,
+    axios
+  })
 };
 
 const createSnapshotInstanceId = () => {
@@ -209,9 +209,23 @@ export const createForTesting = (createArgs: CreateArgs) => {
   })();
 
   const assertSameNetworkRequests = async <Result>(
-    { ctx, ignoreOrder, expectedRequestHashes, name }: AssertSameNetworkRequestsOptions,
+    argsOrCtx: AssertSameNetworkRequestsOptions | Deno.TestContext,
     fn: () => Promise<Result>,
   ): Promise<Result> => {
+
+    const { ctx, ignoreOrder, expectedRequestHashes, name } = (() => {
+      if ('ctx' in argsOrCtx) {
+        return argsOrCtx
+      } else {
+        return {
+          ctx: argsOrCtx,
+          ignoreOrder: undefined,
+          expectedRequestHashes: undefined, 
+          name: undefined,
+        }
+      }
+    })();
+
     const contextName = generateContextName(ctx, name);
 
     const functionName = "assertSameNetworkRequests"
@@ -287,9 +301,9 @@ export const createForTesting = (createArgs: CreateArgs) => {
       stateTransaction(({ setState }) => {
         setState((s) => ({
           ...s,
-          runningContexts: R.omit(
-            [callstackIdentifier],
+          runningContexts: omit(
             s.runningContexts,
+            [callstackIdentifier],
           ),
         }));
       });
@@ -313,7 +327,7 @@ export const createForTesting = (createArgs: CreateArgs) => {
       const cacheContext = txState().cache[runningContext.contextName];
 
       const { expectedRequestHashes, seenRequestHashes } = runningContext;
-      const isRequestListAsExpected = R.equals(runningContext.seenRequestHashes, runningContext.expectedRequestHashes);
+      const isRequestListAsExpected = isEqual(runningContext.seenRequestHashes, runningContext.expectedRequestHashes);
       const missingRequestHashes = expectedRequestHashes.filter((x) => !seenRequestHashes.includes(x));
 
       /* extraRequestHashes should be empty since we throw an error but handling just in case we change semantics later */
@@ -516,8 +530,12 @@ export const createForTesting = (createArgs: CreateArgs) => {
     };
   };
 
+  if (!realAxios.defaults) {
+    throw new Error(`axios defaults is undefined`)
+  }
+
   const axiosProxy = Object.freeze({
-    defaults: { headers: {} },
+    defaults: realAxios.defaults,
     post: createHandler("post"),
     put: createHandler("put"),
     get: createHandler("get"),
@@ -526,7 +544,7 @@ export const createForTesting = (createArgs: CreateArgs) => {
   });
 
   return Object.freeze({
-    axios: axiosProxy,
+    axios: axiosProxy as AxiosInstance,
     assertSameNetworkRequests,
     getCache: () => getState().cache,
 
